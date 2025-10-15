@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers;
+namespace julio101290\boilerplatemaintenance\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\{
+use julio101290\boilerplatemaintenance\Models\{
     DepartamentsModel
 };
 use CodeIgniter\API\ResponseTrait;
@@ -81,7 +81,7 @@ class DepartamentsController extends BaseController {
 
         $titulos["title"] = lang('departaments.title');
         $titulos["subtitle"] = lang('departaments.subtitle');
-        return view('departaments', $titulos);
+        return view('julio101290\boilerplatemaintenance\Views\departaments', $titulos);
     }
 
     public function getDepartaments() {

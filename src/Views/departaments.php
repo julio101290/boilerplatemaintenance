@@ -3,7 +3,7 @@
 <?= $this->include('julio101290\boilerplate\Views\load\nestable') ?>
 <?= $this->extend('julio101290\boilerplate\Views\layout\index') ?>
 <?= $this->section('content') ?>
-<?= $this->include('modulesDepartaments/modalCaptureDepartaments') ?>
+<?= $this->include('julio101290\boilerplatemaintenance\Views/modulesDepartaments/modalCaptureDepartaments') ?>
 <div class="card card-default">
     <div class="card-header">
         <div class="float-right">
