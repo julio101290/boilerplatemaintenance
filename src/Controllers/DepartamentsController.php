@@ -97,7 +97,7 @@ class DepartamentsController extends BaseController {
                 ->first();
 
         //Get Company name
-        $empresa = $this->empresa->find($dato["idsucursal"]);
+        $empresa = $this->empresa->find($dato["idempresa"]);
 
         //Get brachoffice
         $branchoffice = $this->brachoffice->find($dato["idsucursal"]);
