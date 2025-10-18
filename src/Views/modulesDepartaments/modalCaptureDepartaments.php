@@ -113,6 +113,17 @@
 
         $("#btnSaveDepartaments").removeAttr("disabled");
 
+        $("#idempresa").val("0").trigger("change");
+
+        var newOptionBranchOffice = new Option("Seleccione una sucursal", "0", true, true);
+        $('#idsucursal').append(newOptionBranchOffice).trigger('change');
+        $("#idsucursal").val("0");
+
+
+        var newOptionAreaManager = new Option("Seleccione una sucursal", "0", true, true);
+        $('#areamanager').append(newOptionAreaManager).trigger('change');
+        $("#areamanager").val("0");
+
     });
 
     /* 
@@ -131,7 +142,7 @@
 
         $("#idDepartaments").val(idDepartaments);
         $("#btnGuardarDepartaments").removeAttr("disabled");
-        
+
 
     });
 
