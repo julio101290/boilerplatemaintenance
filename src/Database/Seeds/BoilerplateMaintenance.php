@@ -42,6 +42,11 @@ class BoilerplateMaintenance extends Seeder {
         // Assign Permission to user
         $this->authorize->addPermissionToUser('departaments-permission', 1);
 
+        // Permission
+        $this->authorize->createPermission('employes-permission', 'Permiso para la lista de empleados');
+
+        // Assign Permission to user
+        $this->authorize->addPermissionToUser('employes-permission', 1);
     }
 
     public function down() {

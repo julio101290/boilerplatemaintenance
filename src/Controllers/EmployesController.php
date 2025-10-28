@@ -4,30 +4,30 @@ namespace julio101290\boilerplatemaintenance\Controllers;
 
 use App\Controllers\BaseController;
 use julio101290\boilerplatemaintenance\Models\{
-    DepartamentsModel
+    EmployesModel
 };
 use CodeIgniter\API\ResponseTrait;
 use julio101290\boilerplatelog\Models\LogModel;
 use julio101290\boilerplatecompanies\Models\EmpresasModel;
 use julio101290\boilerplatebranchoffice\Models\BranchofficesModel;
-use julio101290\boilerplate\Models\UserModel;
+use julio101290\boilerplatemaintenance\Models\DepartamentsModel;
 
-class DepartamentsController extends BaseController {
+class EmployesController extends BaseController {
 
     use ResponseTrait;
 
     protected $log;
-    protected $departaments;
+    protected $employes;
     protected $empresa;
-    protected $brachoffice;
-    protected $users;
+    protected $branchOffice;
+    protected $departament;
 
     public function __construct() {
-        $this->departaments = new DepartamentsModel();
+        $this->employes = new EmployesModel();
         $this->log = new LogModel();
         $this->empresa = new EmpresasModel();
-        $this->brachoffice = new BranchofficesModel();
-        $this->users = new UserModel();
+        $this->branchOffice = new BranchofficesModel();
+        $this->departament = new DepartamentsModel();
         helper(['menu', 'utilerias']);
     }
 
@@ -48,10 +48,10 @@ class DepartamentsController extends BaseController {
             $orderColumnIndex = (int) $request->getGet('order')[0]['column'] ?? 0;
             $orderDir = $request->getGet('order')[0]['dir'] ?? 'asc';
 
-            $fields = $this->departaments->allowedFields;
+            $fields = $this->employes->allowedFields;
             $orderField = $fields[$orderColumnIndex] ?? 'id';
 
-            $builder = $this->departaments->mdlGetDepartaments($empresasID);
+            $builder = $this->employes->mdlGetEmployes($empresasID);
 
             $total = clone $builder;
             $recordsTotal = $total->countAllResults(false);
@@ -79,35 +79,37 @@ class DepartamentsController extends BaseController {
             ]);
         }
 
-        $titulos["title"] = lang('departaments.title');
-        $titulos["subtitle"] = lang('departaments.subtitle');
-        return view('julio101290\boilerplatemaintenance\Views\departaments', $titulos);
+        $titulos["title"] = lang('employes.title');
+        $titulos["subtitle"] = lang('employes.subtitle');
+        return view('julio101290\boilerplatemaintenance\Views\employes', $titulos);
     }
 
-    public function getDepartaments() {
+    public function getEmployes() {
         helper('auth');
 
         $idUser = user()->id;
         $titulos["empresas"] = $this->empresa->mdlEmpresasPorUsuario($idUser);
         $empresasID = count($titulos["empresas"]) === 0 ? [0] : array_column($titulos["empresas"], "id");
 
-        $idDepartaments = $this->request->getPost("idDepartaments");
-        $dato = $this->departaments->whereIn('idEmpresa', $empresasID)
-                ->where('id', $idDepartaments)
+        $idEmployes = $this->request->getPost("idEmployes");
+
+        $dato = $this->employes->whereIn('idEmpresa', $empresasID)
+                ->where('id', $idEmployes)
                 ->first();
 
-        //Get Company name
-        $empresa = $this->empresa->find($dato["idempresa"]);
+        //GET BRANCHOFFICE
 
-        //Get brachoffice
-        $branchoffice = $this->brachoffice->find($dato["idsucursal"]);
+        $branchOffice = $this->branchOffice
+                        ->select("name")
+                        ->where("id", $dato["idBranchOffice"])->first();
 
-        //Get Users
-        $user = $this->users->asArray()->find($dato["areamanager"]);
+        // GET DEPARTAMENT
+        $departament = $this->departament
+                        ->select("description")
+                        ->where("id", $dato["idDepartament"])->first();
 
-        $dato["nombreEmpresa"] = $empresa["nombre"];
-        $dato["nombreSucursal"] = $branchoffice["name"];
-        $dato["nombreUsuario"] = $user["username"];
+        $dato["branchOfficeName"] = $branchOffice["name"];
+        $dato["departamentName"] = $departament["description"];
 
         return $this->response->setJSON($dato);
     }
@@ -117,16 +119,16 @@ class DepartamentsController extends BaseController {
 
         $userName = user()->username;
         $datos = $this->request->getPost();
-        $idKey = $datos["idDepartaments"] ?? 0;
+        $idKey = $datos["idEmployes"] ?? 0;
 
         if ($idKey == 0) {
             try {
-                if (!$this->departaments->save($datos)) {
-                    $errores = implode(" ", $this->departaments->errors());
+                if (!$this->employes->save($datos)) {
+                    $errores = implode(" ", $this->employes->errors());
                     return $this->respond(['status' => 400, 'message' => $errores], 400);
                 }
                 $this->log->save([
-                    "description" => lang("departaments.logDescription") . json_encode($datos),
+                    "description" => lang("employes.logDescription") . json_encode($datos),
                     "user" => $userName
                 ]);
                 return $this->respond(['status' => 201, 'message' => 'Guardado correctamente'], 201);
@@ -134,12 +136,12 @@ class DepartamentsController extends BaseController {
                 return $this->respond(['status' => 500, 'message' => 'Error al guardar: ' . $ex->getMessage()], 500);
             }
         } else {
-            if (!$this->departaments->update($idKey, $datos)) {
-                $errores = implode(" ", $this->departaments->errors());
+            if (!$this->employes->update($idKey, $datos)) {
+                $errores = implode(" ", $this->employes->errors());
                 return $this->respond(['status' => 400, 'message' => $errores], 400);
             }
             $this->log->save([
-                "description" => lang("departaments.logUpdated") . json_encode($datos),
+                "description" => lang("employes.logUpdated") . json_encode($datos),
                 "user" => $userName
             ]);
             return $this->respond(['status' => 200, 'message' => 'Actualizado correctamente'], 200);
@@ -150,71 +152,18 @@ class DepartamentsController extends BaseController {
         helper('auth');
 
         $userName = user()->username;
-        $registro = $this->departaments->find($id);
+        $registro = $this->employes->find($id);
 
-        if (!$this->departaments->delete($id)) {
-            return $this->respond(['status' => 404, 'message' => lang("departaments.msg.msg_get_fail")], 404);
+        if (!$this->employes->delete($id)) {
+            return $this->respond(['status' => 404, 'message' => lang("employes.msg.msg_get_fail")], 404);
         }
 
-        $this->departaments->purgeDeleted();
+        $this->employes->purgeDeleted();
         $this->log->save([
-            "description" => lang("departaments.logDeleted") . json_encode($registro),
+            "description" => lang("employes.logDeleted") . json_encode($registro),
             "user" => $userName
         ]);
 
-        return $this->respondDeleted($registro, lang("departaments.msg_delete"));
-    }
-
-    /**
-     * Get Storages via AJax
-     */
-    public function getDepartamentsAjax() {
-
-        $request = service('request');
-        $postData = $request->getPost();
-
-        $response = array();
-
-        // Read new token and assign in $response['token']
-        $response['token'] = csrf_hash();
-
-        helper('auth');
-        $userName = user()->username;
-        $idUser = user()->id;
-
-        $idEmpresa = $postData["idEmpresa"];
-        $idSucursal = $postData["idBranchOffice"];
-
-        $search = "";
-
-        if (isset($postData['searchTerm'])) {
-
-            $search = $postData['searchTerm'];
-        }
-
-
-        $listaDepartamentos = $this->departaments->select('id,description')
-                ->where("idempresa", $idEmpresa)
-                ->where("idsucursal", $idSucursal)
-                ->where("deleted_at", null)
-                ->like('description', $search)
-                ->findAll();
-
-        $data = array();
-        $data[] = array(
-            "id" => 0,
-            "text" => "0 Todas los departamentos",
-        );
-
-        foreach ($listaDepartamentos as $departamento) {
-            $data[] = array(
-                "id" => $departamento['id'],
-                "text" => $departamento['id'] . ' ' . $departamento['description'],
-            );
-        }
-
-        $response['data'] = $data;
-
-        return $this->response->setJSON($response);
+        return $this->respondDeleted($registro, lang("employes.msg_delete"));
     }
 }

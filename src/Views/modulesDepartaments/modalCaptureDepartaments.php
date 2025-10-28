@@ -34,6 +34,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="form-group row">
                         <label for="idsucursal" class="col-sm-2 col-form-label"><?= lang('departaments.fields.idsucursal') ?></label>
                         <div class="col-sm-10">
@@ -54,6 +55,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="form-group row">
                         <label for="description" class="col-sm-2 col-form-label"><?= lang('departaments.fields.description') ?></label>
                         <div class="col-sm-10">
