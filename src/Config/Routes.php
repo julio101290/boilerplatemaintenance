@@ -43,4 +43,21 @@ $routes->group('admin', function ($routes) {
             , 'EmployesController::getEmployes'
             , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
+
+    $routes->resource('ProductsEmploye', [
+        'filter' => 'permission:productsemploye-permission',
+        'namespace' => 'julio101290\boilerplatemaintenance\Controllers',
+        'controller' => 'ProductsEmployeController',
+        'except' => 'show'
+    ]);
+
+    $routes->post('productos/empleadosProducto'
+            , 'ProductsEmployeController::ctrDatatableProductsEmployes'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->post('productos/toggleEmployeProduct'
+            , 'ProductsEmployeController::toggleEmployeProduct'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
 });
