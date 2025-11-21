@@ -35,27 +35,27 @@ class BoilerplateMaintenance extends Seeder {
 
     public function run() {
 
-
-        // Permission
+        // Permissions
         $this->authorize->createPermission('departaments-permission', 'Permiso para la lista de departaments');
 
         $this->authorize->createPermission('productsemploye-permission', 'Permiso ASignar un producto a un empleado');
+
+        $this->authorize->createPermission('employes-permission', 'Permiso para la lista de empleados');
+        
+        $this->authorize->createPermission('orderMaintenance-permission', 'Permiso para la lista de ordenes de mantenimiento');
+        
 
         // Assign Permission to user
         $this->authorize->addPermissionToUser('departaments-permission', 1);
 
         $this->authorize->addPermissionToUser('productsemploye-permission', 1);
 
-        // Permission
-        $this->authorize->createPermission('employes-permission', 'Permiso para la lista de empleados');
-
-        // Assign Permission to user
         $this->authorize->addPermissionToUser('employes-permission', 1);
 
-        $this->authorize->addPermissionToUser('employes-permission', 1);
+        $this->authorize->addPermissionToUser('orderMaintenance-permission', 1);
     }
 
     public function down() {
-        //
+       
     }
 }

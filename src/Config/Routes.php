@@ -60,4 +60,55 @@ $routes->group('admin', function ($routes) {
             , 'ProductsEmployeController::toggleEmployeProduct'
             , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
+
+    $routes->resource('orderMaintenance', [
+        'filter' => 'permission:orderMaintenance-permission',
+        'controller' => 'OrderMaintenenceController',
+        'except' => 'show',
+        'namespace' => 'julio101290\boilerplatemaintenance\Controllers',
+    ]);
+
+    $routes->get('newOrderMaintenance'
+            , 'OrderMaintenenceController::newOrderMaintenance'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->get('editOrderMaintenance/(:any)'
+            , 'SellsController::editSell/$1'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
+
+    $routes->post('orderMaintenance/save'
+            , 'SellsController::save'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
+
+    $routes->post('orderMaintenance/getLastCode'
+            , 'SellsController::getLastCode'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
+
+    $routes->get('orderMaintenance/report/(:any)'
+            , 'SellsController::report/$1'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
+    $routes->get('orderMaintenance/(:any)/(:any)/(:any)/(:any)/(:any)/(:any)'
+            , 'OrderMaintenenceController::ordersMaintenanceFilters/$1/$2/$3/$4/$5/$6'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->get('listOrderMaintenance/(:any)/(:any)/(:any)/(:any)/(:any)/(:any)'
+            , 'OrderMaintenenceController::orderMaintenanceListFilters/$1/$2/$3/$4/$5/$6'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->get('reporteVentas'
+            , 'SellsController::reportSellsProducts'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
+
+    $routes->get('sellsReport/(:any)/(:any)/(:any)/(:any)/(:any)/(:any)'
+            , 'SellsController::sellsReport/$1/$2/$3/$4/$5/$6'
+            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+    );
 });
