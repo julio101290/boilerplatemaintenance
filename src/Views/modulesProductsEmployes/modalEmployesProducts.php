@@ -81,7 +81,7 @@
     /**
      * Abre el modal y carga empleados del producto seleccionado
      */
-    $(".tableProducts").on("click", ".btnAddEmploye", function () {
+    $(".tableSaldos").on("click", ".btnAddEmploye", function () {
         
         
         var idProduct = $(this).attr("idProducts");

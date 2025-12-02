@@ -7,7 +7,7 @@ use CodeIgniter\Database\Migration;
 class OrderMaintenancedetails extends Migration {
 
     public function up() {
-        // Sellsdetails
+        // OrderMaintenancedetails
         $this->forge->addField([
             'id' => ['type' => 'int', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
             'idOrderMaintenanceDetails' => ['type' => 'int', 'constraint' => 11, 'null' => true],

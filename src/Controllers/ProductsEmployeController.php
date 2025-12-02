@@ -857,7 +857,7 @@ class ProductsEmployeController extends BaseController {
         }
 
         // Obtener idEmpresa a partir del producto
-        $productQuery = $db->table('products')
+        $productQuery = $db->table('saldos')
                 ->select('idEmpresa')
                 ->where('id', $idProduct)
                 ->get()
