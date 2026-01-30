@@ -11,11 +11,11 @@
 
 <?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/dataHeadOrderMaintenance') ?>
 <?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/productosModalOrderMaintenance') ?>
-<?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/modalPayment') ?>
 <?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/moreInfoRow') ?>
 <?= $this->include('julio101290\boilerplateproducts\Views\modulesProducts/modalCaptureProducts') ?>
 <?= $this->include('julio101290\boilerplatecustumers\Views\modulesCustumers/modalCaptureCustumers') ?>
 <?= $this->include('julio101290\boilerplatedrivers\Views\modulesChoferes/modalCaptureChoferes') ?>
 <?= $this->include('julio101290\boilerplatevehicles\Views\modulesVehiculos/modalCaptureVehiculos') ?>
+<?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/extraFields') ?>
 
 <?= $this->endSection() ?>

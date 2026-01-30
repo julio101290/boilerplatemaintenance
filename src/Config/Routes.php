@@ -74,13 +74,13 @@ $routes->group('admin', function ($routes) {
     );
 
     $routes->get('editOrderMaintenance/(:any)'
-            , 'SellsController::editSell/$1'
-            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+            , 'OrderMaintenenceController::editOrder/$1'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
 
     $routes->post('orderMaintenance/save'
-            , 'SellsController::save'
-            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+            , 'OrderMaintenenceController::save'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
 
     $routes->post('orderMaintenance/getLastCode'
@@ -89,8 +89,8 @@ $routes->group('admin', function ($routes) {
     );
 
     $routes->get('orderMaintenance/report/(:any)'
-            , 'SellsController::report/$1'
-            , ['namespace' => 'julio101290\boilerplatesells\Controllers']
+            , 'OrderMaintenenceController::report/$1'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
     $routes->get('orderMaintenance/(:any)/(:any)/(:any)/(:any)/(:any)/(:any)'
             , 'OrderMaintenenceController::ordersMaintenanceFilters/$1/$2/$3/$4/$5/$6'

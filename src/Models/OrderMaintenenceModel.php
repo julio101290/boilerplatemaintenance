@@ -18,6 +18,7 @@ class OrderMaintenenceModel extends Model {
         'idEmpresa',
         'folio',
         'idUser',
+        'idCustumer',
         'idProduct',
         'idEmpĺoye',
         'listProducts',
@@ -46,6 +47,7 @@ class OrderMaintenenceModel extends Model {
         'regimenFiscalReceptor',
         'idVehiculo',
         'idChofer',
+        'ISRRetenido',
         'idSucursal',
         'idArqueoCaja',
         'tipoVehiculo',
@@ -137,6 +139,7 @@ class OrderMaintenenceModel extends Model {
             a.idProduct,
             a.idEmploye,
             d.fullname as nameemploye,
+            b.razonSocial,
             a.folio,
             a.date,
             b.email AS correoCliente,
@@ -175,10 +178,9 @@ class OrderMaintenenceModel extends Model {
             a.updated_at,
             a.deleted_at
         ")
-                
                 ->join('empresas c', 'a.idEmpresa = c.id', 'left')
                 ->join('employes d', 'a.idEmploye = d.id', 'left')
-                ->join('custumers b', 'a.idCustumer = b.id', 'left')
+                ->join('proveedores b', 'a.idCustumer = b.id', 'left')
                 ->whereIn('a.idEmpresa', $empresas);
 
         // Filtros por columna
@@ -204,11 +206,10 @@ class OrderMaintenenceModel extends Model {
         if (isset($params['length']) && $params['length'] != -1) {
             $builder->limit($params['length'], $params['start']);
         }
-        
+
 
         $data = $builder->get()->getResultArray();
-        
-        
+
         // Total sin filtros
         $total = $this->db->table('ordermaintenance  a')
                 ->join('empresas c', 'a.idEmpresa = c.id', 'left')
@@ -378,9 +379,9 @@ class OrderMaintenenceModel extends Model {
         $result = $this->db->table('ordermaintenance a')
                 ->select("
             a.idProduct,
-            a.idEmpĺoye,
             a.folio,
             a.quoteTo,
+            a.idCustumer,
             a.UUID,
             a.idUser,
             a.id,

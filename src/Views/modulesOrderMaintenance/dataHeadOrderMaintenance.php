@@ -1,4 +1,3 @@
-
 <div class="row">
 
     <div class="col-12">
@@ -34,6 +33,7 @@
                             <?= lang('newOrderMaintenance.othersDataVehicle') ?>
                         </button>
                     </li>
+
 
                     <li class="nav-item" role="presentation" hidden>
                         <button class="nav-link" id="facturaGlobal-tab" data-toggle="tab" data-target="#facturaGlobal" type="button" role="tab" aria-controls="facturaGlobal" aria-selected="false">
@@ -411,16 +411,14 @@
                                 </div>
 
 
-                                <button type="button" class="btn btn-primary pull-right btnSaveSells" data-toggle="modal">
+                                <button type="button" class="btn btn-primary pull-right btnSaveOrder" >
                                     <i class="fa far fa-save"> </i><?= lang('newOrderMaintenance.save') ?></button>
 
                                 <button type="button" class="btn bg-maroon btnPrint" data-toggle="modal" required="" data-placement="top" title="Imprimir">
                                     <i class="fa fa-print"> </i> <?= lang('newOrderMaintenance.savePrintClose') ?>
                                 </button>
 
-                                <button type="button" class="btn bg-maroon btnTimbrar" data-toggle="modal" required="" data-placement="top" title="Timbrar">
-                                    <i class="fas fa-qrcode"> </i> <?= lang('newOrderMaintenance.stamp') ?>
-                                </button>
+
 
                             </div>
 
@@ -714,10 +712,6 @@
 
                     }
 
-
-
-
-
                 }
 
             });
@@ -768,7 +762,7 @@
         // Initialize select2 storages
         $("#custumerSell").select2({
             ajax: {
-                url: "<?= site_url('admin/custumers/getCustumersAjax') ?>",
+                url: "<?= site_url('admin/proveedores/getProveedoresAjax') ?>",
                 type: "post",
                 dataType: 'json',
                 delay: 250,
@@ -843,37 +837,6 @@
                 cache: true
             }
         });
-
-
-// -------------------------------------------------------
-// Detector de lectura por pistola (solo captura el código)
-// -------------------------------------------------------
-        let scanTimer = null;
-        let scanBuffer = "";
-        const SCAN_DELAY = 50; // 50 ms es lo ideal
-
-        document.addEventListener("keydown", function (e) {
-
-            if (e.key.length !== 1)
-                return; // evitar teclas especiales
-
-            scanBuffer += e.key;
-
-            clearTimeout(scanTimer);
-
-            scanTimer = setTimeout(() => {
-
-                // Abrimos Select2
-                $("#productOrder").select2("open");
-
-                // Insertamos el código en el buscador interno de Select2
-                let searchBox = $("#productOrder").data('select2').dropdown.$search;
-                searchBox.val(scanBuffer).trigger('input');
-
-                scanBuffer = "";
-            }, SCAN_DELAY);
-        });
-
 
         // Initialize select2 storages
         $("#idSucursal").select2({
@@ -1229,54 +1192,14 @@
 
         });
 
-        // Initialize select2 storages
-        $("#tipoComprobanteRD").select2({
-            ajax: {
-                url: "<?= site_url('admin/comprobantes_rd/getTiposComprobanteAjax') ?>",
-                type: "post",
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    // CSRF Hash
-                    var csrfName = $('.txt_csrfname').attr('name'); // CSRF Token name
-                    var csrfHash = $('.txt_csrfname').val(); // CSRF hash
-                    var idEmpresa = $('.idEmpresaSells').val(); // CSRF hash
-
-                    return {
-                        searchTerm: params.term, // search term
-                        [csrfName]: csrfHash, // CSRF Token
-                        idEmpresa: idEmpresa // search term
-                    };
-                },
-                processResults: function (response) {
-
-                    // Update CSRF Token
-                    $('.txt_csrfname').val(response.token);
-
-                    return {
-                        results: response.data
-                    };
-                },
-                cache: true
-            }
-        });
 
 
         $(".btnSavePayment").on("click", function () {
 
             var titulo = $("#titulo").val();
             listProducts();
-            if (titulo == "Editar Cotizacion") {
 
-                saveSell();
-
-            } else {
-
-
-                $("#modalPayment").modal("toggle");
-                saveSell();
-
-            }
+            saveOrder();
 
         });
 
@@ -1287,163 +1210,17 @@
          * Save Quote
          */
 
-        $(".btnSaveSells").on("click", function () {
+        $(".btnSaveOrder").on("click", function () {
 
             listProducts();
-            var titulo = $("#titulo").val();
 
-            if (titulo == "Editar Cotizacion") {
-
-                saveSell();
-
-            } else {
-
-                $("#modalPayment").modal("toggle");
-
-            }
-
+            saveOrder();
 
         });
 
 
-        function timbrarVenta() {
 
-
-            var UUID = $("#uuid").val();
-
-
-            $(".btnTimbrar").attr("disabled", true);
-
-
-
-            $.ajax({
-
-                url: "<?= base_url('admin/facturar/') ?>" + UUID,
-                method: "GET",
-                cache: false,
-                contentType: false,
-                processData: false,
-
-                //dataType:"json",
-                success: function (respuesta) {
-
-
-                    if (respuesta.match(/success.*/)) {
-
-
-                        Toast.fire({
-                            icon: 'success',
-                            title: "<?= lang('newOrderMaintenance.stampSuccess') ?>"
-                        });
-
-                        $(".btnTimbrar").removeAttr("disabled");
-
-
-                        window.open("<?= base_url('admin/xml/generarPDFDesdeVenta') ?>" + "/" + UUID, "_blank");
-                        return true;
-
-                    } else {
-
-                        Toast.fire({
-                            icon: 'error',
-                            title: respuesta
-                        });
-
-                        $(".btnTimbrar").removeAttr("disabled");
-
-                        return false;
-
-
-                    }
-
-                }
-
-            }
-
-            ).fail(function (jqXHR, textStatus, errorThrown) {
-
-                if (jqXHR.status === 0) {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "No hay conexión.!" + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-
-                } else if (jqXHR.status == 404) {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Requested page not found [404]" + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-                } else if (jqXHR.status == 500) {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Internal Server Error [500]." + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-
-                } else if (textStatus === 'parsererror') {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Requested JSON parse failed." + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-                } else if (textStatus === 'timeout') {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Time out error." + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-                } else if (textStatus === 'abort') {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Ajax request aborted." + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-
-                } else {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: 'Uncaught Error: ' + jqXHR.responseText
-                    });
-
-                    $(".btnTimbrar").removeAttr("disabled");
-
-
-                }
-            })
-
-            return true;
-        }
-
-
-        function saveSell() {
+        function saveOrder() {
 
 
             var UUID = $("#uuid").val();
@@ -1458,6 +1235,7 @@
             var listProducts = $("#listProducts").val();
             var quoteTo = $("#quoteTo").val();
             var delivaryTime = $("#delivaryTime").val();
+            var idProduct = $("#productOrder").val();
 
             var subTotal = $("#subTotal").val();
             var taxes = $("#totalImpuesto").val();
@@ -1568,9 +1346,7 @@
 
             }
 
-
-
-            $(".btnSaveSells").attr("disabled", true);
+            $(".btnSaveOrder").attr("disabled", true);
 
 
             var datos = new FormData();
@@ -1624,15 +1400,13 @@
 
             datos.append("tipoDocumentoRelacionado", tipoDocumentoRelacionado);
             datos.append("UUIDRelacion", UUIDRelacion);
-
-
-
+            datos.append("idProduct", idProduct);
 
             datos.append("UUID", UUID);
 
             $.ajax({
 
-                url: "<?= base_url('admin/sells/save') ?>",
+                url: "<?= base_url('admin/orderMaintenance/save') ?>",
                 method: "POST",
                 data: datos,
                 cache: false,
@@ -1650,7 +1424,7 @@
                             title: "Guardado Correctamente"
                         });
 
-                        $(".btnSaveSells").removeAttr("disabled");
+                        $(".btnSaveOrder").removeAttr("disabled");
 
                         return true;
 
@@ -1661,7 +1435,7 @@
                             title: respuesta
                         });
 
-                        $(".btnSaveSells").removeAttr("disabled");
+                        $(".btnSaveOrder").removeAttr("disabled");
 
                         return false;
 
@@ -1682,7 +1456,7 @@
                         text: "No hay conexión.!" + jqXHR.responseText
                     });
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
 
                 } else if (jqXHR.status == 404) {
@@ -1704,7 +1478,7 @@
                     });
 
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
                 } else if (textStatus === 'parsererror') {
 
@@ -1714,7 +1488,7 @@
                         text: "Requested JSON parse failed." + jqXHR.responseText
                     });
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
                 } else if (textStatus === 'timeout') {
 
@@ -1724,7 +1498,7 @@
                         text: "Time out error." + jqXHR.responseText
                     });
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
                 } else if (textStatus === 'abort') {
 
@@ -1734,7 +1508,7 @@
                         text: "Ajax request aborted." + jqXHR.responseText
                     });
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
                 } else {
 
@@ -1745,7 +1519,7 @@
                     });
 
 
-                    $(".btnSaveSells").removeAttr("disabled");
+                    $(".btnSaveOrder").removeAttr("disabled");
 
                 }
             })
@@ -1932,12 +1706,6 @@
         })
 
 
-        $(".btnTimbrar").on("click", function () {
-
-
-            timbrarVenta();
-
-        });
 
 
 
@@ -2013,6 +1781,37 @@ echo $listarProductos;
         $("#esFacturaGlobal").bootstrapToggle("off");
         $("#periodicidad").select2();
         $("#mes").select2();
+
+
+
+
+
+   $("#btnInfoExtraProduct").on("click",function(){
+
+        
+        var idBalance = $("#productOrder").val();
+            console.log("idBalance:", idBalance);
+            var datos = new FormData();
+            datos.append("idBalance", idBalance);
+            $.ajax({
+
+            url: "<?= base_url('admin/saldos/getProductsFieldsExtra') ?>",
+                    method: "POST",
+                    data: datos,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (respuesta) {
+
+                    $(".extraFields").html(respuesta);
+                    }
+
+            })
+        
+        $('#modalAddExtraFields').modal('show');
+       
+   })
+
 
     </script>
 

@@ -14,11 +14,6 @@
 
 <?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/modaSendMail') ?>
 
-<?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/paymentsList') ?>
-<?= $this->include('julio101290\boilerplatemaintenance\modulesOrderMaintenance/modalPaymentList') ?>
-<?= $this->include('julio101290\boilerplatemaintenance\modulesOrderMaintenance/listaFacturas') ?>
-<?= $this->include('julio101290\boilerplatemaintenance\modulesOrderMaintenance/xmlList') ?>
-
 
 <!-- SELECT2 EXAMPLE -->
 <div class="card card-default">
@@ -287,29 +282,13 @@
             {
                 "data": function (data) {
 
-                    var buttonPayment = "";
-
-                    if (data.balance > 0) {
-
-                        buttonPayment = `<button class="btn btn-success btnSetPayment" data-toggle="modal" balance ="${data.balance}" uuid="${data.UUID}" folio="${data.folio}" data-toggle="modal" data-target="#modalPayment"  >  <i class="fab fa-cc-visa"></i></button> `;
-
-                    } else {
-
-                        buttonPayment = `<button class="btn btn-success "   uuid="${data.UUID}" folio="${data.folio}">  <i class="far fa-check-square"></i></button> `;
-
-                    }
-
+     
                     return `<td class="text-right py-0 align-middle">
                          <div class="btn-group btn-group-sm">
-                             <a href="<?= base_url('admin/editSell') ?>/${data.UUID}" class="btn btn-primary btn-edit"><i class="fas fa-pencil-alt"></i></a>
+                             <a href="<?= base_url('admin/editOrderMaintenance') ?>/${data.UUID}" class="btn btn-primary btn-edit"><i class="fas fa-pencil-alt"></i></a>
                              <button class="btn btn-success btnSendMail" data-toggle="modal" correoCliente ="${data.correoCliente}" uuid="${data.UUID}" folio="${data.folio}" data-toggle="modal" data-target="#modalSendMail"  >  <i class=" fas fa-envelope"></i></button>
-                             <button class="btn bg-warning btnImprimirVenta" uuid="${data.UUID}" ><i class="far fa-file-pdf"></i></button>
-                             <button class="btn bg-maroon btnTimbrar" uuid="${data.UUID}" ><i class="fas fa-qrcode"></i></button>
-                             <button class="btn btn-danger btn-delete" data-id="${data.id}"><i class="fas fa-trash"></i></button>
-                             ${buttonPayment}
-                             <button class="btn bg-maroon btnPaymentsList" data-toggle="modal"  uuid="${data.UUID}" data-toggle="modal" data-target="#modalPaymentsList"  >  <i class="fas fa-search"></i></button>
-                             <button class="btn bg-success btnInvoiceList" data-toggle="modal"  uuid="${data.UUID}" data-toggle="modal" data-target="#modalInvoiceList"  >  <i class="fas fa-search"></i></button>
-                             <button class="btn bg-gray btnListXML" data-toggle="modal"  uuid="${data.UUID}" data-toggle="modal" data-target="#modalListXML"  >  <i class="fas fa-list"></i></button>
+                             <button class="btn bg-warning btnPrintOrder" uuid="${data.UUID}" ><i class="far fa-file-pdf"></i></button>
+                             <button class="btn btn-danger btn-delete" data-id="${data.id}"><i class="fas fa-trash"></i></button> 
                          </div>
                          </td>`
                 }
@@ -524,12 +503,12 @@
      IMPRIMIR VEnta
      =============================================*/
 
-    $(".tableOrdersMaintenence").on("click", '.btnImprimirVenta', function () {
+    $(".tableOrdersMaintenence").on("click", '.btnPrintOrder', function () {
 
         var uuid = $(this).attr("uuid");
 
 
-        window.open("<?= base_url('admin/sells/report') ?>" + "/" + uuid, "_blank");
+        window.open("<?= base_url('admin/orderMaintenance/report') ?>" + "/" + uuid, "_blank");
 
     });
 
@@ -539,7 +518,7 @@
      =============================================*/
     $(".tableOrdersMaintenence").on("click", ".btn-delete", function () {
 
-        var idSell = $(this).attr("data-id");
+        var idOrder = $(this).attr("data-id");
 
         Swal.fire({
             title: '<?= lang('boilerplate.global.sweet.title') ?>',
@@ -553,7 +532,7 @@
                 .then((result) => {
                     if (result.value) {
                         $.ajax({
-                            url: `<?= base_url('admin/sells') ?>/` + idSell,
+                            url: `<?= base_url('admin/orderMaintenance') ?>/` + idOrder,
                             method: 'DELETE',
                         }).done((data, textStatus, jqXHR) => {
                             Toast.fire({
@@ -562,7 +541,7 @@
                             });
 
 
-                            tableQuotes.ajax.reload();
+                            tableOrderMaintenence.ajax.reload();
                         }).fail((error) => {
                             Toast.fire({
                                 icon: 'error',

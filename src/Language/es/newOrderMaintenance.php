@@ -34,8 +34,8 @@ $newOrderMaintenance["folio"] = "Folio No.";
 $newOrderMaintenance["typeVoucher"] = "Tipo Comprobante";
 $newOrderMaintenance["selectTypeVoucher"] = "Seleccione tipo comprobante";
 $newOrderMaintenance["numVoucher"] = "Comprobante No.";
-$newOrderMaintenance["custumer"] = "Cliente ";
-$newOrderMaintenance["selectCustumer"] = "Seleccione Cliente ";
+$newOrderMaintenance["custumer"] = "Proveedor ";
+$newOrderMaintenance["selectCustumer"] = "Seleccione Proveedor ";
 $newOrderMaintenance["product"] = "Producto ";
 $newOrderMaintenance["selectProductOrder"] = "Seleccione Pruducto de la orden ";
 
@@ -86,7 +86,7 @@ $newOrderMaintenance["vehiclesNeedSelected"] = "Necesita Seleccionar Vehiculo";
 $newOrderMaintenance["stampSuccess"] = "Timbrada Correctamente";
 $newOrderMaintenance["selectAtLeastOneProduct"] = "Seleccione al menos un producto";
 
-$newOrderMaintenance["quoteTo"] = "Cotizar a";
+$newOrderMaintenance["quoteTo"] = "Datos del Proveedor en caso de comprar piezas";
 $newOrderMaintenance["sellsObservations"] = "Observaciones";
 $newOrderMaintenance["deleveryTime"] = "Tiempo de entrega";
 
@@ -153,11 +153,11 @@ $newOrderMaintenance["sellsReportsSubTitle"] = "Ventas por Empresa, Sucursal, Pr
  */
 
 $newOrderMaintenance["sellNote"] = "Nota De Venta";
-$newOrderMaintenance["seller"] = "Vendedor";
-$newOrderMaintenance["validity"] = "Vigencia";
+$newOrderMaintenance["seller"] = "Técnico";
+$newOrderMaintenance["validity"] = "Empleado Asignado";
 $newOrderMaintenance["thanks"] = "Gracias por su compra!";
 
 $newOrderMaintenance["documendUUID"] = "UUID DOCUMENTO:";
-$newOrderMaintenance["msgSellNote"] = "ES RESPONSABILIDAD DEL CLIENTE REVISAR A DETALLE ESTA COTIZACION PARA SU POSTERIOR SURTIDO, UNA VEZ CONFIRMADA, NO HAY CAMBIOS NI DEVOLUCIONES.";
+$newOrderMaintenance["msgOrderNote"] = "Asi mismo hago contar que el equipo de propiedad de la empresa y que el equipo se entrega en condiciones óptimas para trabajar, tambien hago  constar que es responsabilidad del usuario entregar el equipo en las condiciones en la que fue asignado, en dado caso de terminar la relacion laboral con la empresa de no ser asi se aplicaran descuenos que correspondan:";
 
 return $newOrderMaintenance;

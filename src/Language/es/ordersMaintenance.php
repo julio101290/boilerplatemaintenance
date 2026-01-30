@@ -9,6 +9,7 @@ $ordersMaintenance["edit"] = "Editar Orden de mantenimientos";
 $ordersMaintenance["createEdit"] = "Crear / Editar";
 $ordersMaintenance["title"] = "Admon. Ordenes de Mantenimiento";
 $ordersMaintenance["subtitle"] = "Lista de Ordenes de Mantenimiento";
+$ordersMaintenance["name"] = "Orden de Mantenimiento";
 
 $ordersMaintenance["companie"] = "Empresa";
 $ordersMaintenance["allCompanies"] = "Todas las empresas";

@@ -22,7 +22,7 @@
                     echo "   <option value='$idEmpresa'>$idEmpresa - $nombreEmpresa</option>";
                 } else {
 
-                    echo "  <option value=''>".lang('newOrderMaintenance.selectCompanie')."</option>";
+                    echo "  <option value=''>" . lang('newOrderMaintenance.selectCompanie') . "</option>";
 
                     foreach ($empresas as $key => $value) {
 
@@ -53,7 +53,7 @@
         </div>
     </div>
 
-   
+
     <div class="col-lg-4  col-xs-12 col-md-4 pull-right" style="
          text-align: right;
          ">
@@ -82,7 +82,7 @@
                     echo "   <option value='$tipoComprobanteRDID'>$tipoComprobanteRDPrefijo - $tipoComprobanteRDNombre</option>";
                 } else {
 
-                    echo "  <option value=''>".lang('newOrderMaintenance.selectTypeVoucher')."</option>";
+                    echo "  <option value=''>" . lang('newOrderMaintenance.selectTypeVoucher') . "</option>";
                 }
                 ?>
 
@@ -105,7 +105,7 @@
 
 <div class="row">
 
-    <div class="col-lg-2  col-xs-12 col-md-2" hidden>
+    <div class="col-lg-2  col-xs-12 col-md-2" >
         <div class="form-group">
             <label for="custumerSell"><?= lang('newOrderMaintenance.custumer') ?> </label>
             <select id='custumerSell' name='custumerSell' class="custumerSell" style='width: 100%;'>
@@ -116,21 +116,44 @@
                     echo "   <option value='$idCustumer'>$idCustumer - $nameCustumer</option>";
                 } else {
 
-                    echo "  <option value=''>".lang('newOrderMaintenance.selectCustumer') ."</option>";
+                    echo "  <option value=''>" . lang('newOrderMaintenance.selectCustumer') . "</option>";
                 }
                 ?>
 
             </select>
         </div>
     </div>
-    
-        <div class="col-lg-2  col-xs-12 col-md-2">
-        <div class="form-group">
-            <label for="productOrder"><?= lang('newOrderMaintenance.product') ?> </label>
-            <select id='productOrder' name='productOrder' class="productOrder" style='width: 100%;'>
-                <option  value="0"><?= lang('newOrderMaintenance.selectProductOrder') ?> </option>              
 
-            </select>
+    <div class="col-lg-2 col-md-2 col-xs-12">
+        <div class="form-group">
+            <label for="productOrder">
+                <?= lang('newOrderMaintenance.product') ?>
+            </label>
+
+            <div class="input-group">
+                <select id="productOrder" name="productOrder" class="form-control productOrder">
+                    <?php
+                    if (isset($idProduct)) {
+                        echo "<option value='$idProduct'>$idProduct - $nameProduct</option>";
+                    } else {
+                        echo "<option value='0'>" . lang('newOrderMaintenance.selectProductOrder') . "</option>";
+                    }
+                    ?>
+                </select>
+
+                <span class="input-group-btn ">
+                    <button 
+                        type="button" 
+                        class="btn btn-info btnInfoExtraProduct"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        id="btnInfoExtraProduct"
+                        name="btnInfoExtraProduct"
+                        title="<?= lang('newOrderMaintenance.productHelp') ?>">
+                        <i class="fa fa-info-circle"></i>
+                    </button>
+                </span>
+            </div>
         </div>
     </div>
 

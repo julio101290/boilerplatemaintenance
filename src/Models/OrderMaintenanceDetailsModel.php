@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class OrderMaintenanceDetailsModel extends Model {
 
-    protected $table = 'sellsdetails';
+    protected $table = 'ordermaintenancedetails';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

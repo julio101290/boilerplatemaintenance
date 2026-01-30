@@ -23,6 +23,13 @@ use julio101290\boilerplateinventory\Models\SaldosModel;
 use julio101290\boilerplatesells\Models\EnlacexmlModel;
 use julio101290\boilerplateCFDI\Models\XmlModel;
 use julio101290\boilerplateCFDI\Controllers\XmlController;
+use julio101290\boilerplatesuppliers\Controllers\ProveedoresController;
+use julio101290\boilerplateproducts\Models\{
+    FieldsExtraProductosModel
+};
+use julio101290\boilerplatemaintenance\Models\ProductEmployesModel;
+use julio101290\boilerplateinventory\Models\DataExtraFieldsBalanceModel;
+use julio101290\boilerplatemaintenance\Models\EmployesModel;
 
 class OrderMaintenenceController extends BaseController {
 
@@ -49,6 +56,11 @@ class OrderMaintenenceController extends BaseController {
     protected $enlaceXML;
     protected $xml;
     protected $xmlController;
+    protected $suppliers;
+    protected $fieldsExtraProductos;
+    protected $fieldsExtraValues;
+    protected $productsEmploye;
+    protected $employe;
 
     public function __construct() {
         $this->log = new LogModel();
@@ -71,6 +83,12 @@ class OrderMaintenenceController extends BaseController {
         $this->enlaceXML = new EnlacexmlModel();
         $this->xml = new XmlModel();
         $this->xmlController = new XmlController();
+        $this->suppliers = new \julio101290\boilerplatesuppliers\Models\ProveedoresModel();
+        $this->fieldsExtraProductos = new FieldsExtraProductosModel();
+        $this->fieldsExtraValues = new DataExtraFieldsBalanceModel();
+        $this->employe = new EmployesModel();
+
+        $this->productsEmploye = new ProductEmployesModel();
         helper('menu');
         helper('utilerias');
     }
@@ -127,7 +145,6 @@ class OrderMaintenenceController extends BaseController {
 
         $tiposVehiculo = $this->tiposVehiculo->mdlGetTipovehiculoArray($empresasID);
 
-       
         $titulos["title"] = lang('ordersMaintenance.title');
         $titulos["subtitle"] = lang('ordersMaintenance.subtitle');
 
@@ -449,7 +466,7 @@ class OrderMaintenenceController extends BaseController {
         $tiposVehiculo = $this->tiposVehiculo->mdlGetTipovehiculoArray($empresasID);
 
         $titulos["title"] = lang('newOrderMaintenance.title');
-        $titulos["subtitle"] =  lang('newOrderMaintenance.subtitle');
+        $titulos["subtitle"] = lang('newOrderMaintenance.subtitle');
         $titulos["tiposVehiculo"] = $tiposVehiculo;
 
         $titulos["totalExento"] = "0";
@@ -589,7 +606,7 @@ class OrderMaintenenceController extends BaseController {
     public function getLastCodeInterno($idEmpresa, $idSucursal) {
 
 
-        $result = $this->sells->selectMax("folio")
+        $result = $this->orderMaintenance->selectMax("folio")
                 ->where("idEmpresa", $idEmpresa)
                 ->where("idSucursal", $idSucursal)
                 ->first();
@@ -609,7 +626,7 @@ class OrderMaintenenceController extends BaseController {
      * Editar Cotizacion
      */
 
-    public function editSell($uuid) {
+    public function editOrder($uuid) {
 
         helper('auth');
         $userName = user()->username;
@@ -645,68 +662,90 @@ class OrderMaintenenceController extends BaseController {
         $authorize = $auth = service('authorization');
         $permisoAgregarArticulo = $authorize->hasPermission('capturaarticulodesdeventa', $idUser);
 
-        $sell = $this->sells->mdlGetSellUUID($uuid, $empresasID);
+        $order = $this->orderMaintenance->mdlGetOrderMaintenanceUUID($uuid, $empresasID);
 
-        $listProducts = json_decode($sell["listProducts"], true);
+        $listProducts = json_decode($order["listProducts"], true);
 
-        $titulos["idSell"] = $sell["id"];
-        $titulos["folio"] = $sell["folio"];
-        $titulos["idCustumer"] = $sell["idCustumer"];
-        $titulos["nameCustumer"] = $sell["nameCustumer"];
-        $titulos["idEmpresa"] = $sell["idEmpresa"];
-        $titulos["nombreEmpresa"] = $sell["nombreEmpresa"];
+        $titulos["idOrder"] = $order["id"];
+        $titulos["folio"] = $order["folio"];
+        $titulos["idCustumer"] = $order["idCustumer"];
+
+        $order["nameCustumer"] = "";
+
+        $dataSupplier = $this->suppliers->where("id", $order["idCustumer"])->first();
+
+        $titulos["nameCustumer"] = "Seleccione  Proveedor";
+
+        if (isset($dataSupplier)) {
+
+            $titulos["nameCustumer"] = $dataSupplier["firstname"];
+        }
+
+
+        $titulos["idEmpresa"] = $order["idEmpresa"];
+        $titulos["nombreEmpresa"] = $order["nombreEmpresa"];
 
         $titulos["idUser"] = $idUser;
         $titulos["userName"] = $userName;
         $titulos["listProducts"] = $listProducts;
-        $titulos["taxes"] = number_format($sell["taxes"], 2, ".");
-        $titulos["IVARetenido"] = number_format($sell["IVARetenido"], 2, ".");
-        $titulos["ISRRetenido"] = number_format($sell["ISRRetenido"], 2, ".");
-        $titulos["subTotal"] = number_format($sell["subTotal"], 2, ".");
-        $titulos["total"] = number_format($sell["total"], 2, ".");
-        $titulos["fecha"] = $sell["date"];
-        $titulos["dateVen"] = $sell["dateVen"];
-        $titulos["quoteTo"] = $sell["quoteTo"];
-        $titulos["observations"] = $sell["generalObservations"];
-        $titulos["uuid"] = $sell["UUID"];
-        $titulos["idQuote"] = $sell["idQuote"];
+        $titulos["idProduct"] = $order["idProduct"];
+
+        $dataProduct = $this->saldos->where("id", $order["idProduct"])->first();
+
+        if (isset($dataProduct)) {
+
+            $titulos["nameProduct"] = $dataProduct["lote"];
+        }
+
+
+        $titulos["taxes"] = number_format($order["taxes"], 2, ".");
+        $titulos["IVARetenido"] = number_format($order["IVARetenido"], 2, ".");
+        $titulos["ISRRetenido"] = number_format($order["ISRRetenido"], 2, ".");
+        $titulos["subTotal"] = number_format($order["subTotal"], 2, ".");
+        $titulos["total"] = number_format($order["total"], 2, ".");
+        $titulos["fecha"] = $order["date"];
+        $titulos["dateVen"] = $order["dateVen"];
+        $titulos["quoteTo"] = $order["quoteTo"];
+        $titulos["observations"] = $order["generalObservations"];
+        $titulos["uuid"] = $order["UUID"];
+        $titulos["idQuote"] = $order["idQuote"];
         $titulos["formaPago"] = $this->catalogosSAT->formasDePago40()->searchByField("texto", "%%", 99999);
         $titulos["usoCFDI"] = $this->catalogosSAT->usosCfdi40()->searchByField("texto", "%%", 99999);
         $titulos["metodoPago"] = $this->catalogosSAT->metodosDePago40()->searchByField("texto", "%%", 99999);
         $titulos["regimenFiscal"] = $this->catalogosSAT->regimenesFiscales40()->searchByField("texto", "%%", 99999);
 
-        $titulos["RFCReceptor"] = $sell["RFCReceptor"];
-        $titulos["regimenFiscalReceptor"] = $sell["regimenFiscalReceptor"];
-        $titulos["usoCFDIReceptor"] = $sell["usoCFDI"];
-        $titulos["metodoPagoReceptor"] = $sell["metodoPago"];
-        $titulos["formaPagoReceptor"] = $sell["formaPago"];
-        $titulos["razonSocialReceptor"] = $sell["razonSocialReceptor"];
-        $titulos["codigoPostalReceptor"] = $sell["codigoPostalReceptor"];
+        $titulos["RFCReceptor"] = $order["RFCReceptor"];
+        $titulos["regimenFiscalReceptor"] = $order["regimenFiscalReceptor"];
+        $titulos["usoCFDIReceptor"] = $order["usoCFDI"];
+        $titulos["metodoPagoReceptor"] = $order["metodoPago"];
+        $titulos["formaPagoReceptor"] = $order["formaPago"];
+        $titulos["razonSocialReceptor"] = $order["razonSocialReceptor"];
+        $titulos["codigoPostalReceptor"] = $order["codigoPostalReceptor"];
         $titulos["permisoAgregarArticulo"] = $permisoAgregarArticulo;
 
-        $titulos["totalExento"] = $sell["tasaCero"];
+        $titulos["totalExento"] = $order["tasaCero"];
 
-        $titulos["idVehiculo"] = $sell["idVehiculo"];
+        $titulos["idVehiculo"] = $order["idVehiculo"];
 
-        $titulos["uuidRelacion"] = $sell["UUIDRelacion"];
+        $titulos["uuidRelacion"] = $order["UUIDRelacion"];
 
-        $datosVehiculo = $this->vehiculos->select("*")->where("id", $sell["idVehiculo"])->first();
+        $datosVehiculo = $this->vehiculos->select("*")->where("id", $order["idVehiculo"])->first();
 
-        $titulos["vehiculoNombre"] = $sell["idVehiculo"];
-        $datosVehiculo = $this->vehiculos->select("*")->where("id", $sell["idVehiculo"])->first();
+        $titulos["vehiculoNombre"] = $order["idVehiculo"];
+        $datosVehiculo = $this->vehiculos->select("*")->where("id", $order["idVehiculo"])->first();
 
         if (isset($datosVehiculo["descripcion"])) {
 
-            $titulos["vehiculoNombre"] = $sell["tipoVehiculo"] . " " . $datosVehiculo["placas"] . " " . $datosVehiculo["descripcion"];
+            $titulos["vehiculoNombre"] = $order["tipoVehiculo"] . " " . $datosVehiculo["placas"] . " " . $datosVehiculo["descripcion"];
         } else {
 
             $titulos["vehiculoNombre"] = "Seleccione Vehiculo";
         }
 
 
-        $titulos["idChofer"] = $sell["idChofer"];
+        $titulos["idChofer"] = $order["idChofer"];
 
-        $datosChofer = $this->choferes->select("*")->where("id", $sell["idChofer"])->first();
+        $datosChofer = $this->choferes->select("*")->where("id", $order["idChofer"])->first();
 
         if (isset($datosChofer["nombre"])) {
 
@@ -717,19 +756,19 @@ class OrderMaintenenceController extends BaseController {
         }
 
 
-        $titulos["tipoVehiculo"] = $sell["tipoVehiculo"];
+        $titulos["tipoVehiculo"] = $order["tipoVehiculo"];
         $tiposVehiculo = $this->tiposVehiculo->mdlGetTipovehiculoArray($empresasID);
 
         $titulos["tiposVehiculo"] = $tiposVehiculo;
 
-        $titulos["idSucursal"] = $sell["idSucursal"];
+        $titulos["idSucursal"] = $order["idSucursal"];
         $sucursal = $this->sucursales->select("*")->where("id", $titulos["idSucursal"])->first();
         $titulos["nombreSucursal"] = $sucursal["key"] . " " . $sucursal["name"];
 
-        if (isset($sell["tipoComprobanteRD"]) && is_numeric($sell["tipoComprobanteRD"]) && $sell["tipoComprobanteRD"] > 0) {
+        if (isset($order["tipoComprobanteRD"]) && is_numeric($order["tipoComprobanteRD"]) && $order["tipoComprobanteRD"] > 0) {
 
-            $comprobante = $this->comprobantesRD->find($sell["tipoComprobanteRD"]);
-            $titulos["folioComprobanteRD"] = $sell["folioComprobanteRD"];
+            $comprobante = $this->comprobantesRD->find($order["tipoComprobanteRD"]);
+            $titulos["folioComprobanteRD"] = $order["folioComprobanteRD"];
             $titulos["tipoComprobanteRDID"] = $comprobante["id"];
             $titulos["tipoComprobanteRDNombre"] = $comprobante["nombre"];
             $titulos["tipoComprobanteRDPrefijo"] = $comprobante["prefijo"];
@@ -740,10 +779,10 @@ class OrderMaintenenceController extends BaseController {
             $titulos["tipoComprobanteRDNombre"] = "0";
             $titulos["tipoComprobanteRDPrefijo"] = "0";
         }
-        $titulos["title"] = "Editar Venta";
-        $titulos["subtitle"] = "Edición de Ventas";
+        $titulos["title"] = "Editar Orden de Mantenimiento";
+        $titulos["subtitle"] = "Edición de Ordenes de Mantenimiento";
 
-        return view('julio101290\boilerplatesells\Views\newSell', $titulos);
+        return view('julio101290\boilerplatemaintenance\Views\newOrderMaintenance', $titulos);
     }
 
     /*
@@ -765,40 +804,18 @@ class OrderMaintenenceController extends BaseController {
 
         $datos = $this->request->getPost();
 
-        $this->sells->db->transBegin();
+        $this->orderMaintenance->db->transBegin();
 
-        $existsSell = $this->sells->where("UUID", $datos["UUID"])->countAllResults();
+        $existsOrder = $this->orderMaintenance->where("UUID", $datos["UUID"])->countAllResults();
 
         $listProducts = json_decode($datos["listProducts"], true);
 
         $datosSucursal = $this->sucursales->find($datos["idSucursal"]);
 
-        $datos["idArqueoCaja"] = 0;
-
-        if ($datosSucursal["arqueoCaja"] == "on") {
-
-
-            $datosArqueoCaja = $this->arqueoCaja->mdlObtenerIdArqueo($datos["idEmpresa"], $datos["idSucursal"], $datos["date"]);
-
-            if (!isset($datosArqueoCaja["id"])) {
-
-
-                $this->sells->db->transRollback();
-
-                echo "No hay habilitado arqueo de caja";
-
-                return;
-            } else {
-
-
-                $datos["idArqueoCaja"] = $datosArqueoCaja["id"];
-            }
-        }
-
         /**
-         * if is new sell
+         * if is new order
          */
-        if ($existsSell == 0) {
+        if ($existsOrder == 0) {
 
 
             $ultimoFolio = $this->getLastCodeInterno($datos["idEmpresa"], $datos["idSucursal"]);
@@ -813,7 +830,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["tipoComprobanteRD"] == "") {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "No se selecciono tipo comprobante";
                     return;
@@ -822,7 +839,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["folioComprobanteRD"] == "") {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "No hay folio Comprobante";
                     return;
@@ -831,7 +848,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["folioComprobanteRD"] > $comprobante["folioFinal"]) {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "Se agotaron los folio son hasta  $comprobante[folioFinal] y van en $datos[folioComprobanteRD]";
                     return;
@@ -839,7 +856,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["folioComprobanteRD"] < $comprobante["folioInicial"]) {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "Folio fuera de rango  $comprobante[folioInicial] y van en $datos[folioComprobanteRD]";
                     return;
@@ -848,7 +865,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["date"] < $comprobante["desdeFecha"]) {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "fecha fuera de rango limite inferior $comprobante[desdeFecha] fecha venta $datos[date]";
                     return;
@@ -857,7 +874,7 @@ class OrderMaintenenceController extends BaseController {
 
                 if ($datos["date"] > $comprobante["hastaFecha"]) {
 
-                    $this->sells->db->transRollback();
+                    $this->orderMaintenance->db->transRollback();
 
                     echo "fecha fuera de rango,  limite superior $comprobante[desdeFecha]  fecha venta $datos[date]";
                     return;
@@ -871,15 +888,11 @@ class OrderMaintenenceController extends BaseController {
 
             try {
 
-                $datos1 = array_intersect_key($datos, array_flip($this->sells->allowedFields));
+                $datos1 = array_intersect_key($datos, array_flip($this->orderMaintenance->allowedFields));
                 $datos1["tipoComprobanteRD"] = "";
-                if ($this->sells->insert($datos1) === false) {
+                if ($this->orderMaintenance->insert($datos1) === false) {
 
-                    $db = \Config\Database::connect();
-                    $lastQuery = $db->getLastQuery();
-
-                    log_message('error', 'Último query: ' . $lastQuery);
-                    $errores = $this->sells->errors();
+                    $errores = $this->orderMaintenance->errors();
 
                     $listErrors = "";
 
@@ -893,13 +906,13 @@ class OrderMaintenenceController extends BaseController {
                     return;
                 }
 
-                $idSellInserted = $this->sells->getInsertID();
+                $idOrderInserted = $this->orderMaintenance->getInsertID();
 
                 // save datail
 
                 foreach ($listProducts as $key => $value) {
 
-                    $datosDetalle["idSell"] = $idSellInserted;
+                    $datosDetalle["idOrder"] = $idOrderInserted;
                     $datosDetalle["idProduct"] = $value["idProduct"];
                     $datosDetalle["description"] = $value["description"];
                     $datosDetalle["unidad"] = $value["unidad"];
@@ -929,165 +942,29 @@ class OrderMaintenenceController extends BaseController {
                     //Valida Stock
                     $products = $this->products->find($datosDetalle["idProduct"]);
 
-                    if ($products["validateStock"] == "on") {
-
-                        if ($products["stock"] < $datosDetalle["cant"]) {
-
-                            echo "Stock agotado en el producto " . $datosDetalle["description"];
-                            $this->sellsDetail->db->transRollback();
-                            return;
-                        }
-                    }
-
-                    if ($products["inventarioRiguroso"] == "on") {
-
-                        $datosSaldo["idEmpresa"] = $datos["idEmpresa"];
-                        $datosSaldo["idAlmacen"] = $datosDetalle["idAlmacen"];
-                        $datosSaldo["idProducto"] = $datosDetalle["idProduct"];
-                        $datosSaldo["lote"] = $datosDetalle["lote"];
-
-                        /**
-                         * Verificamos saldo
-                         */
-                        $datosNuevosSaldo = $this->saldos->select("*")->where($datosSaldo)->first();
-
-                        if ($datosNuevosSaldo["cantidad"] < $datosDetalle["cant"]) {
-
-                            echo "Stock agotado en el producto " . $datosDetalle["description"];
-                            $this->inventory->db->transRollback();
-                            return;
-                        }
-
-                        $datosNuevosSaldo["cantidad"] = $datosNuevosSaldo["cantidad"] - $datosDetalle["cant"];
-
-                        $existenciaProducto["stock"] = $products["stock"] - $datosDetalle["cant"];
-
-                        if ($this->products->update($products["id"], $existenciaProducto) === false) {
-
-                            echo "error al actualizar el saldo $datosDetalle[idProduct]";
-
-                            $this->inventory->db->transRollback();
-                            return;
-                        }
-
-
-                        if ($this->saldos->update($datosNuevosSaldo["id"], $datosNuevosSaldo) === false) {
-
-
-
-                            $errores = $this->inventory->errors();
-
-                            $listErrors = "";
-
-                            foreach ($errores as $field => $error) {
-
-                                $listErrors .= $error . " ";
-                            }
-
-                            echo $listErrors . " error al actualizar el saldo $datosDetalle[idProduct]";
-                            ;
-
-                            $this->inventory->db->transRollback();
-                            return;
-                        }
-                    }
-
-
-                    if ($this->sellsDetail->save($datosDetalle) === false) {
+                    if ($this->orderDetailsMaintenance->save($datosDetalle) === false) {
 
                         echo "error al insertar el producto $datosDetalle[idProducto]";
 
-                        $this->sellsDetail->db->transRollback();
-                        return;
-                    } else {
-
-
-                        if ($products["validateStock"] == "on") {
-
-                            // ACTUALIZA STOCK
-                            $newStock = $products["stock"] - $datosDetalle["cant"];
-
-                            $updateDataStock["stock"] = $newStock;
-                            if ($this->products->update($datosDetalle["idProduct"], $updateDataStock) === false) {
-
-                                echo "error al actualizar el stock del producto $datosDetalle[idProducto]";
-
-                                $this->sellsDetail->db->transRollback();
-                                return;
-                            }
-                        }
-                    }
-                }
-
-
-                if ($datos["idQuote"] > 0) {
-
-                    echo "Inserted" . $idSellInserted;
-                    $newSellQuote["idSell"] = $idSellInserted;
-
-                    if ($this->quotes->update($datos["idQuote"], $newSellQuote) === false) {
-
-                        echo "error al actualizar el stock del producto $datosDetalle[idProducto]";
-
-                        $this->sellsDetail->db->transRollback();
-
+                        $this->orderDetailsMaintenance->db->transRollback();
                         return;
                     }
                 }
 
 
-                /**
-                 * if Payments i mayor to cero
-                 */
-                if ($datos["importPayment"] > 0) {
-
-                    $dataPayment["idSell"] = $idSellInserted;
-                    $dataPayment["importPayment"] = $datos["importPayment"];
-                    $dataPayment["importBack"] = $datos["importBack"];
-                    $dataPayment["datePayment"] = $datos["datePayment"];
-                    $dataPayment["metodPayment"] = $datos["metodoPago"];
-                    $dataPayment["observaciones"] = $datos["observacionesPago"];
-
-                    try {
 
 
-                        if ($this->payments->save($dataPayment) === false) {
-
-                            echo "error al insertar el pago ";
-
-                            $this->sellsDetail->db->transRollback();
-                            return;
-                        }
-                    } catch (\Exception $e) {
 
 
-                        $this->sellsDetail->db->transRollback();
-                        echo $e->getMessage();
-                        return;
-                    }
-                }
-
-                //ACTUALIZAMOS FOLIO ACTUAL COMPROBANTE
-
-                if ($empresa["facturacionRD"] == "on") {
-
-                    $comprobante = $this->comprobantesRD->find($datos["tipoComprobanteRD"]);
-
-                    $folio = $comprobante["folioActual"] + 1;
-
-                    $datosComprobante["folioActual"] = $folio;
-
-                    if ($this->comprobantesRD->update($datos["tipoComprobanteRD"], $datosComprobante))
-                        ;
-                }
 
 
-                $datosBitacora["description"] = "Se guardo la cotizacion con los siguientes datos" . json_encode($datos);
+
+                $datosBitacora["description"] = "Se guardo la orden de mantenimiento con los siguientes datos" . json_encode($datos);
                 $datosBitacora["user"] = $userName;
 
                 $this->log->save($datosBitacora);
 
-                $this->sellsDetail->db->transCommit();
+                $this->orderDetailsMaintenance->db->transCommit();
                 echo "Guardado Correctamente";
             } catch (\PHPUnit\Framework\Exception $ex) {
 
@@ -1099,27 +976,16 @@ class OrderMaintenenceController extends BaseController {
 
 
 
-            $backSell = $this->sells->where("UUID", $datos["UUID"])->first();
-            $listProductsBack = json_decode($backSell["listProducts"], true);
+            $backOrder = $this->orderMaintenance->where("UUID", $datos["UUID"])->first();
+            $listProductsBack = json_decode($backOrder["listProducts"], true);
 
-            //BUSCAMOS SI TIENE PAGOS
-
-            $pagos = $this->payments->select("*")->where("idSell", $backSell["id"])->countAllResults();
-
-            if ($pagos > 0) {
-
-                echo "No se puede modificar ya que hay pagos enlazados, favor de eliminar los pagos primero";
-
-                return;
-            }
-
-            $datos["folio"] = $backSell["folio"];
+            $datos["folio"] = $backOrder["folio"];
 
             $datos["balance"] = $datos["total"];
 
-            if ($this->sells->update($backSell["id"], $datos) == false) {
+            if ($this->orderMaintenance->update($backOrder["id"], $datos) == false) {
 
-                $errores = $this->sells->errors();
+                $errores = $this->orderMaintenance->errors();
                 $listError = "";
                 foreach ($errores as $field => $error) {
 
@@ -1139,53 +1005,13 @@ class OrderMaintenenceController extends BaseController {
 
                     //BUSCAMOS STOCK DEL PRODUCTO
                     $products = $this->products->find($value["idProduct"]);
-
-                    if ($products["validateStock"] == "on") {
-
-                        // ACTUALIZA STOCK
-                        $newStock = $products["stock"] + $value["cant"];
-
-                        $updateDataStock["stock"] = $newStock;
-                        if ($this->products->update($value["idProduct"], $updateDataStock) === false) {
-
-                            echo "error al actualizar el stock del producto $value[idProducto]";
-
-                            $this->sellsDetail->db->transRollback();
-                            return;
-                        }
-                    }
-
-
-                    /**
-                     * Devolvemos el saldo 
-                     */
-                    if ($products["inventarioRiguroso"] == "on") {
-
-                        //DEVOLVEMOS EL SALDO
-                        $datosSaldo["idEmpresa"] = $backSell["idEmpresa"];
-                        $datosSaldo["idAlmacen"] = $value["idAlmacen"];
-                        $datosSaldo["idProducto"] = $value["idProduct"];
-                        $datosSaldo["lote"] = $value["lote"];
-
-                        $datosNuevosSaldo = $this->saldos->select("*")->where($datosSaldo)->first();
-
-                        $datosNuevosSaldo["cantidad"] = $datosNuevosSaldo["cantidad"] + $value["cant"];
-
-                        if ($this->saldos->update($datosNuevosSaldo["id"], $datosNuevosSaldo) === false) {
-
-                            echo "error al actualizar el saldo $value[idProducto]";
-
-                            $this->inventory->db->transRollback();
-                            return;
-                        }
-                    }
                 }
 
-                $this->sellsDetail->select("*")->where("idSell", $backSell["id"])->delete();
-                $this->sellsDetail->purgeDeleted();
+                $this->orderDetailsMaintenance->select("*")->where("idSell", $backOrder["id"])->delete();
+                $this->orderDetailsMaintenance->purgeDeleted();
                 foreach ($listProducts as $key => $value) {
 
-                    $datosDetalle["idSell"] = $backSell["id"];
+                    $datosDetalle["idOrder"] = $backOrder["id"];
                     $datosDetalle["idProduct"] = $value["idProduct"];
                     $datosDetalle["description"] = $value["description"];
                     $datosDetalle["unidad"] = $value["unidad"];
@@ -1208,9 +1034,9 @@ class OrderMaintenenceController extends BaseController {
                     $datosDetalle["total"] = $value["total"];
                     $datosDetalle["neto"] = $value["neto"];
 
-                    if ($this->sellsDetail->save($datosDetalle) === false) {
+                    if ($this->orderDetailsMaintenance->save($datosDetalle) === false) {
 
-                        $errores = $this->sellsDetail->errors();
+                        $errores = $this->orderDetailsMaintenanceDetail->errors();
                         $listError = "";
                         foreach ($errores as $field => $error) {
 
@@ -1219,80 +1045,19 @@ class OrderMaintenenceController extends BaseController {
 
                         echo "error al insertar el producto $datosDetalle[idProduct] $errores";
 
-                        $this->sells->db->transRollback();
+                        $this->orderDetailsMaintenance->db->transRollback();
                         return;
-                    } else {
-
-
-                        if ($products["validateStock"] == "on") {
-
-                            $products = $this->products->find($value["idProduct"]);
-                            if ($products["stock"] < $datosDetalle["cant"]) {
-
-                                echo "Stock agotado en el producto " . $datosDetalle["description"];
-                                $this->sellsDetail->db->transRollback();
-                                return;
-                            }
-                            //BUSCAMOS STOCK DEL PRODUCTO
-                            $products = $this->products->find($value["idProduct"]);
-                            // ACTUALIZA STOCK
-                            $newStock = $products["stock"] - $datosDetalle["cant"];
-
-                            $updateDataStock["stock"] = $newStock;
-                            if ($this->products->update($datosDetalle["idProduct"], $updateDataStock) === false) {
-
-                                echo "error al actualizar el stock del producto $datosDetalle[idProducto]";
-
-                                $this->sellsDetail->db->transRollback();
-                                return;
-                            }
-                        }
-
-
-
-                        /**
-                         * Devolvemos el saldo 
-                         */
-                        if ($products["inventarioRiguroso"] == "on") {
-
-                            //DEVOLVEMOS EL SALDO
-                            $datosSaldo["idEmpresa"] = $datos["idEmpresa"];
-                            $datosSaldo["idAlmacen"] = $datosDetalle["idAlmacen"];
-                            $datosSaldo["idProducto"] = $datosDetalle["idProduct"];
-                            $datosSaldo["lote"] = $datosDetalle["lote"];
-
-                            $datosNuevosSaldo = $this->saldos->select("*")->where($datosSaldo)->first();
-
-                            if ($datosNuevosSaldo["cantidad"] < $datosDetalle["cant"]) {
-
-                                echo "No hay stock suficiente en el producto  $datosSaldo[idProduct]";
-                                $this->inventory->db->transRollback();
-                                return;
-                            }
-
-
-
-                            $datosNuevosSaldo["cantidad"] = $datosNuevosSaldo["cantidad"] - $datosDetalle["cant"];
-
-                            if ($this->saldos->update($datosNuevosSaldo["id"], $datosNuevosSaldo) === false) {
-
-                                echo "error al actualizar el saldo $value[idProducto]";
-
-                                $this->inventory->db->transRollback();
-                                return;
-                            }
-                        }
                     }
                 }
 
 
                 $datosBitacora["description"] = "Se actualizo" . json_encode($datos) .
-                        " Los datos anteriores son" . json_encode($backSell);
+                        " Los datos anteriores son" . json_encode($backOrder);
                 $datosBitacora["user"] = $userName;
                 $this->log->save($datosBitacora);
 
                 echo "Actualizado Correctamente";
-                $this->sells->db->transCommit();
+                $this->orderMaintenance->db->transCommit();
                 return;
             }
         }
@@ -1337,7 +1102,7 @@ class OrderMaintenenceController extends BaseController {
         /**
          * 
          */
-        if ($this->sells->select("*")->whereIn("idEmpresa", $empresasID)->where("id", $id)->countAllResults() == 0) {
+        if ($this->orderMaintenance->select("*")->whereIn("idEmpresa", $empresasID)->where("id", $id)->countAllResults() == 0) {
 
             return $this->failNotFound('Acceso Prohibido');
         }
@@ -1349,96 +1114,31 @@ class OrderMaintenenceController extends BaseController {
 
 
 
-        $this->sells->db->transBegin();
+        $this->orderMaintenance->db->transBegin();
 
-        $infoSell = $this->sells->find($id);
+        $infoOrder = $this->orderMaintenance->find($id);
 
-        /**
-         * Verificamos que no tenga enlazado XML
-         */
-        if ($this->xmlEnlace->select("*")->where("idDocumento", $infoSell["id"])->countAllResults() > 0) {
-
-            $this->sells->db->transRollback();
-            return $this->failNotFound('La Venta no se puede eliminar por que ya tiene timbre enlazado');
-        }
-
-        /**
-         * Verificamos que no tenga Pagos Enlazados
-         */
-        if ($this->payments->select("*")->where("idSell", $infoSell["id"])->countAllResults() > 0) {
-
-            $this->sells->db->transRollback();
-            return $this->failNotFound('La Venta no se puede eliminar por que ya tiene pagos ');
-        }
-
-
-        if (!$found = $this->sells->delete($id)) {
-            $this->sells->db->transRollback();
+        if (!$found = $this->orderMaintenance->delete($id)) {
+            $this->orderMaintenance->db->transRollback();
             return $this->failNotFound('Error al eliminar');
         }
 
         //Borramos quotesdetails
 
-        if ($this->sellsDetail->select("*")->where("idSell", $id)->delete() === false) {
+        if ($this->orderDetailsMaintenance->select("*")->where("idOrderMaintenanceDetails", $id)->delete() === false) {
 
-            $this->sellsDetail->db->transRollback();
+            $this->orderDetailsMaintenance->db->transRollback();
             return $this->failNotFound('Error al eliminar el detalle');
         }
 
-        $this->sellsDetail->purgeDeleted();
+        $this->orderDetailsMaintenance->purgeDeleted();
+        $this->orderMaintenance->purgeDeleted();
 
-        $listProducts = json_decode($infoSell["listProducts"], true);
-        $this->sells->purgeDeleted();
-
-        //Devolvemos el Stock
-
-        foreach ($listProducts as $key => $value) {
-
-            $product = $this->products->find($value["idProduct"]);
-
-            $stock = $product["stock"] + $value["cant"];
-
-            $newStock["stock"] = $stock;
-
-            if ($this->products->update($value["idProduct"], $newStock) === false) {
-
-                $this->sells->db->transRollback();
-                return $this->failNotFound('Error al actualizar el Stock');
-            }
-
-
-
-            /**
-             * Devolvemos el saldo 
-             */
-            if ($product["inventarioRiguroso"] == "on") {
-
-                //DEVOLVEMOS EL SALDO
-                $datosSaldo["idEmpresa"] = $infoSell["idEmpresa"];
-                $datosSaldo["idAlmacen"] = $value["idAlmacen"];
-                $datosSaldo["idProducto"] = $value["idProduct"];
-                $datosSaldo["lote"] = $value["lote"];
-
-                $datosNuevosSaldo = $this->saldos->select("*")->where($datosSaldo)->first();
-
-                $datosNuevosSaldo["cantidad"] = $datosNuevosSaldo["cantidad"] + $value["cant"];
-
-                if ($this->saldos->update($datosNuevosSaldo["id"], $datosNuevosSaldo) === false) {
-
-                    echo "error al actualizar el saldo $value[idProducto]";
-
-                    $this->inventory->db->transRollback();
-                    return;
-                }
-            }
-        }
-
-
-        $datosBitacora["description"] = 'Se elimino el Registro' . json_encode($infoSell);
+        $datosBitacora["description"] = 'Se elimino el Registro' . json_encode($infoOrder);
 
         $this->log->save($datosBitacora);
 
-        $this->sells->db->transCommit();
+        $this->orderMaintenance->db->transCommit();
         return $this->respondDeleted($found, 'Eliminado Correctamente');
     }
 
@@ -1552,501 +1252,388 @@ class OrderMaintenenceController extends BaseController {
         }
     }
 
-    /*
-
-      public function delete($id) {
-
-      if (!$found = $this->register->delete($id)) {
-      return $this->failNotFound('Error al eliminar');
-      }
-
-      $infoConsukta = $this->register->find($id);
-
-      $this->register->purgeDeleted();
-
-      $datosBitacora["description"] = 'Se elimino el Registro' . json_encode($infoConsukta);
-
-      $this->log->save($datosBitacora);
-      return $this->respondDeleted($found, 'Eliminado Correctamente');
-      }
-
-      /**
-     * Trae en formato JSON los pacientes para el select2
-     * @return type
-     */
-
-    /*
-      public function traerPacientesAjax() {
-
-      $request = service('request');
-      $postData = $request->getPost();
-
-      $response = array();
-
-      // Read new token and assign in $response['token']
-      $response['token'] = csrf_hash();
-
-      if (!isset($postData['searchTerm'])) {
-      // Fetch record
-      $pacientes = new PacientesModel();
-      $listaPacientes = $pacientes->select('id,nombres,apellidos')
-      ->orderBy('nombres')
-      ->findAll(10);
-      } else {
-      $searchTerm = $postData['searchTerm'];
-
-      // Fetch record
-      $pacientes = new PacientesModel();
-      $listaPacientes = $pacientes->select('id,nombres,apellidos')
-      ->where("deleted_at", null)
-      ->like('nombres', $searchTerm)
-      ->orLike('apellidos', $searchTerm)
-      ->orderBy('nombres')
-      ->findAll(10);
-      }
-
-      $data = array();
-      foreach ($listaPacientes as $paciente) {
-      $data[] = array(
-      "id" => $paciente['id'],
-      "text" => $paciente['nombres'] . ' ' . $paciente['apellidos'],
-      );
-      }
-
-      $response['data'] = $data;
-
-      return $this->response->setJSON($response);
-      } */
-
     /**
      * Reporte Consulta
      */
     public function report($uuid, $isMail = 0) {
 
-        $pdf = new PDFLayoutSells(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $pdf = new PDFLayoutOrders(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
-        $dataSells = $this->sells->where("UUID", $uuid)->first();
+        $dataOrders = $this->orderMaintenance->where("UUID", $uuid)->first();
 
-        $listProducts = json_decode($dataSells["listProducts"], true);
+        $listProducts = json_decode($dataOrders["listProducts"], true);
 
-        $user = $this->user->where("id", $dataSells["idUser"])->first()->toArray();
+        $user = $this->user->where("id", $dataOrders["idUser"])->first()->toArray();
 
-        $custumer = $this->custumer->where("id", $dataSells["idCustumer"])->where("deleted_at", null)->first();
+        $custumer = $this->suppliers->where("id", $dataOrders["idCustumer"])->where("deleted_at", null)->first();
 
-        $datosEmpresa = $this->empresa->select("*")->where("id", $dataSells["idEmpresa"])->first();
-        $datosEmpresaObj = $this->empresa->select("*")->where("id", $dataSells["idEmpresa"])->asObject()->first();
+        $assignentProductEmploye = $this->productsEmploye->where("idProduct", $dataOrders["idProduct"])->first();
 
-        $pdf->nombreDocumento = lang('newSell.sellNote');
+        if ($assignentProductEmploye) {
+
+            $dataEmploye = $this->employe->where("id", $assignentProductEmploye["idEmploye"])->first();
+        }
+
+        if (!$assignentProductEmploye) {
+
+            $nameEmploye = "";
+        } else {
+
+            $nameEmploye = $dataEmploye["fullname"];
+        }
+
+
+
+        if (!$custumer) {
+            $custumer["firstname"] = "";
+            $custumer["lastname"] = "";
+            $custumer["email"] = "";
+        }
+
+        $datosEmpresa = $this->empresa->select("*")->where("id", $dataOrders["idEmpresa"])->first();
+        $datosEmpresaObj = $this->empresa->select("*")->where("id", $dataOrders["idEmpresa"])->asObject()->first();
+
+        $pdf->nombreDocumento = lang('ordersMaintenance.name');
         $pdf->direccion = $datosEmpresaObj->direccion;
 
         if ($datosEmpresaObj->logo == NULL || $datosEmpresaObj->logo == "") {
-
             $pdf->logo = ROOTPATH . "public/images/logo/default.png";
         } else {
-
             $pdf->logo = ROOTPATH . "public/images/logo/" . $datosEmpresaObj->logo;
         }
-        $pdf->folio = str_pad($dataSells["folio"], 5, "0", STR_PAD_LEFT);
 
-        $folioConsulta = "Folio Consulta";
-        $fecha = " Fecha: ";
+        $pdf->folio = str_pad($dataOrders["folio"], 5, "0", STR_PAD_LEFT);
 
         // set document information
         $pdf->nombreEmpresa = $datosEmpresa["nombre"];
         $pdf->direccion = $datosEmpresa["direccion"];
-        $pdf->usuario = ""; //  $user["firstname"] . " " . $user["lastname"];
+        $pdf->usuario = "";
         $pdf->SetCreator(PDF_CREATOR);
         $pdf->SetAuthor($user["username"]);
         $pdf->SetTitle('CI4JCPOS');
         $pdf->SetSubject('CI4JCPOS');
         $pdf->SetKeywords('CI4JCPOS, PDF, PHP, CodeIgniter, CESARSYSTEMS.COM.MX');
 
-        // set default header data
+        // set default header data and fonts
         $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE, PDF_HEADER_STRING);
-
-        // set header and footer fonts
         $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
         $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-
-        // set default monospaced font
         $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
-        // set margins
+        // margins & page setup
         $pdf->SetMargins(PDF_MARGIN_LEFT, 35, PDF_MARGIN_RIGHT);
         $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
         $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
-        // set auto page breaks
         $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-
-        // set image scale factor
         $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
-        // ---------------------------------------------------------
         // add a page
         $pdf->AddPage();
 
-        $pdf->SetY(45);
-        //ETIQUETAS
-        $cliente = lang('newSell.custumer') . " ";
-        $folioRegistro = lang('newSell.folio') . " ";
-        $fecha = lang('newSell.date') . "";
-        $fechaVencimiento = lang('newSell.expirationDate') . "";
+        // base font: small and consistent
+        $pdf->SetFont('helvetica', '', 9);
 
-        $atencionA = lang('newSell.quoteTo') . ":";
-        $observaciones = lang('newSell.sellsObservations') . ":";
-        $vendedor = lang('newSell.seller') . "";
-        $vigencia = lang('newSell.validity') . "";
-        $codigo = lang('newSell.fields.code') . "";
-        $descripcion = lang('newSell.fields.description') . "";
-        $cantidad = lang('newSell.fields.amount') . "";
-        $precio = lang('newSell.fields.price') . "";
-        $lblSubtotal = lang('newSell.subTotal') . "";
-        $lblTotal = lang('newSell.fields.total') . "";
-
-        $impuestos = lang('newSell.quoteTo') . "";
-        $lblIvaRetenido = lang('newSell.VATWithholding') . "";
-        $lblISRRetenido = lang('newSell.ISRWithholding') . "";
-        $atencionA = lang('newSell.quoteTo') . "";
-
-        $lblMsgThanks = lang('newSell.thanks');
-        $lblMsgSellNote = lang('newSell.msgSellNote');
-        $lblUUIDocument = lang('newSell.documendUUID');
+        // line width fine
+        $pdf->SetLineWidth(0.1);
 
         $pdf->SetY(45);
-        //ETIQUETAS
-        // set font
-        //$pdf->SetFont('times', '', 12);
+        // Labels
+        $cliente = lang('newOrderMaintenance.custumer') . " ";
+        $fecha = lang('newOrderMaintenance.date') . "";
+        $fechaVencimiento = lang('newOrderMaintenance.expirationDate') . "";
 
-        if ($datosEmpresa["facturacionRD"] == "on" && $dataSells["folioComprobanteRD"] > 0) {
+        $atencionA = lang('newOrderMaintenance.quoteTo') . ":";
+        $observaciones = lang('newOrderMaintenance.sellsObservations') . ":";
+        $vendedor = lang('newOrderMaintenance.seller') . "";
+        $vigencia = lang('newOrderMaintenance.validity') . "";
+        $codigo = lang('newOrderMaintenance.fields.code') . "";
+        $descripcion = lang('newOrderMaintenance.fields.description') . "";
+        $cantidad = lang('newOrderMaintenance.fields.amount') . "";
+        $precio = lang('newOrderMaintenance.fields.price') . "";
+        $lblSubtotal = lang('newOrderMaintenance.subTotal') . "";
+        $lblTotal = lang('newOrderMaintenance.fields.total') . "";
 
+        $lblIvaRetenido = lang('newOrderMaintenance.VATWithholding') . "";
+        $lblISRRetenido = lang('newOrderMaintenance.ISRWithholding') . "";
 
-            $comprobante = $this->comprobantesRD->find($dataSells["tipoComprobanteRD"]);
-            if ($comprobante["tipoDocumento"] == "COF") {
-                $tipoDocumento = "FACTURA PARA CONSUMIDOR FINAL";
-            }
+        $lblMsgThanks = "";
+        $lblMsgOrderNote = lang('newOrderMaintenance.msgOrderNote');
+        $lblUUIDocument = lang('newOrderMaintenance.documendUUID');
+        $tipoDocumento = "";
 
-            if ($comprobante["tipoDocumento"] == "CF") {
-                $tipoDocumento = "FACTURA PARA CREDITO FISCAL";
-            }
-
-            $comprobanteFactura = $comprobante["prefijo"] . str_pad($dataSells["folioComprobanteRD"], 10, "0", STR_PAD_LEFT);
-            $fechaVencimiento = "AUTORIZADO POR DGII :" . $comprobante["hastaFecha"];
-        } else {
-
-            $tipoDocumento = "";
-            $comprobanteFactura = "";
-            $fechaVencimiento = "";
-        }
-
+        // Header block (compact)
         $bloque2 = <<<EOF
-
-    
-        <table style="font-size:10px; padding:0px 10px;">
-    
-             <tr>
-               <td style="width: 50%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$atencionA
-               </td>
-               <td style="width: 50%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$observaciones
-               </td>
+        <table style="font-size:9px; padding:0px 6px; width:100%;">
+            <tr>
+               <td style="width:50%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$atencionA}</td>
+               <td style="width:50%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$observaciones}</td>
             </tr>
             <tr>
-    
-                <td >
-    
-    
-                $cliente: $custumer[firstname] $custumer[lastname] 
-    
-                    <br>
-                    Telefono: 000
-                    <br>
-                    E-Mail: $custumer[email]
-                    <br>
+                <td style="padding:4px;">
+                    {$cliente}: {$custumer['firstname']} {$custumer['lastname']}<br>
+                    Tel: 000<br>
+                    E-Mail: {$custumer['email']}
                 </td>
-                <td >
-                    $dataSells[generalObservations]
-                    $tipoDocumento  <br>
-                    $comprobanteFactura  <br>
-                    $fechaVencimiento <br>
+                <td style="padding:4px;">
+                    {$dataOrders['generalObservations']}<br>
+                    {$tipoDocumento}<br>
+                    Próx. Mant.: {$fechaVencimiento}
                 </td>
-    
-    
-            </tr>
-    
-            <tr>
-    
-                <td style="width: 25%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$vendedor
-                </td>
-    
-                <td style="width: 24%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$fecha
-                </td>
-                <td style="width: 30%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$fechaVencimiento
-                </td>
-    
-    
-                <td style="width: 21%; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white;">$vigencia
-                </td>
-    
             </tr>
             <tr>
-                    <td>
-                        $user[firstname] $user[lastname]
-                    </td>
-                    <td>
-                    $dataSells[date]
-                    </td>
-                    <td>
-                    $dataSells[dateVen]
-                    </td>
-                    <td>
-                    $dataSells[delivaryTime]
-                    </td>
+                <td style="width:25%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$vendedor}</td>
+                <td style="width:24%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$fecha}</td>
+                <td style="width:30%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$fechaVencimiento}</td>
+                <td style="width:21%; background-color:#2c3e50; padding:5px; font-weight:bold; color:#fff;">{$vigencia}</td>
             </tr>
             <tr>
-                <td style="border-bottom: 1px solid #666; background-color:white; width:640px"></td>
+                <td style="padding:4px;">{$user['firstname']} {$user['lastname']}</td>
+                <td style="padding:4px;">{$dataOrders['date']}</td>
+                <td style="padding:4px;">{$dataOrders['dateVen']}</td>
+                <td style="padding:4px;">{$nameEmploye}</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="border-bottom:1px solid #ddd; padding-top:6px;"></td>
             </tr>
         </table>
     EOF;
 
         $pdf->writeHTML($bloque2, false, false, false, false, '');
 
-        $bloque3 = <<<EOF
+        // --------------------------------------------------
+        // Características del Artículo / Producto principal (FORMATO 2-COLUMNAS COMPACTO)
+        // --------------------------------------------------
+        $idProductPrincipal = $dataOrders['idProduct'] ?? null;
 
-        <table style="font-size:10px; padding:5px 10px;">
-    
+        if (!empty($idProductPrincipal)) {
+            $db = \Config\Database::connect();
+            $builder = $db->table('data_extra_fields_balance AS dav');
+            $builder->select('fep.description, dav.value');
+            $builder->join('fieldsextraproductos AS fep', 'fep.id = dav.idField');
+            $builder->where('dav.idProduct', $idProductPrincipal);
+            $builder->where('dav.value !=', '');
+            $builder->where('fep.deleted_at', null);
+            $builder->where('dav.deleted_at', null);
+            $builder->orderBy('fep.id', 'ASC');
+
+            $extras = $builder->get()->getResultArray();
+
+            if (!empty($extras)) {
+                $pdf->Ln(3);
+                $pdf->SetFont('helvetica', 'B', 9);
+
+                // Prepare two-column rows: label1,value1,label2,value2
+                $pairs = [];
+                foreach ($extras as $ex) {
+                    $pairs[] = [
+                        'label' => ucwords(str_replace('_', ' ', $ex['description'])),
+                        'value' => (string) $ex['value']
+                    ];
+                }
+
+                $rowsHtml = '';
+                $totalPairs = count($pairs);
+                for ($i = 0; $i < $totalPairs; $i += 2) {
+                    $left = $pairs[$i];
+                    $right = ($i + 1 < $totalPairs) ? $pairs[$i + 1] : null;
+
+                    $leftLabel = htmlspecialchars($left['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                    $leftValue = htmlspecialchars($left['value'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+                    if ($right) {
+                        $rightLabel = htmlspecialchars($right['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $rightValue = htmlspecialchars($right['value'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                    } else {
+                        $rightLabel = '';
+                        $rightValue = '';
+                    }
+
+                    $rowsHtml .= "
+                    <tr>
+                        <td style=\"width:18%; padding:4px 6px; border:1px solid #eee; background-color:#fafafa; font-weight:bold;\">{$leftLabel}</td>
+                        <td style=\"width:32%; padding:4px 6px; border:1px solid #eee;\">{$leftValue}</td>
+                        <td style=\"width:18%; padding:4px 6px; border:1px solid #eee; background-color:#fafafa; font-weight:bold;\">{$rightLabel}</td>
+                        <td style=\"width:32%; padding:4px 6px; border:1px solid #eee;\">{$rightValue}</td>
+                    </tr>
+                ";
+                }
+
+                $extraFieldsHtml = <<<EOF
+            <table cellpadding="0" cellspacing="3" style="width:100%; font-size:8.5px; border-collapse:separate; margin-top:4px;">
+                <tr>
+                    <td colspan="4" style="background-color:#2c3e50; color:#fff; padding:6px 8px; font-weight:bold;">Características del Artículo / Producto</td>
+                </tr>
+                {$rowsHtml}
+            </table>
+            EOF;
+
+                $pdf->writeHTML($extraFieldsHtml, true, false, false, false, '');
+                $pdf->Ln(4);
+                $pdf->SetFont('helvetica', '', 9);
+            }
+        }
+
+        // --------------------------------------------------
+        // Tabla de productos (UN SOLO TABLE con todas las filas)
+        // --------------------------------------------------
+        // Cabecera + inicio de tabla
+        $productosTable = <<<EOF
+    <table style="font-size:9px; padding:2px 6px; width:100%; border-collapse:collapse; border:0;">
+        <thead>
             <tr>
-    
-            <td style="width: 100px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center"> $codigo</td>
-            <td style="width: 200px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center"> $descripcion</td>
-                     <td style="width: 60px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center">$cantidad</td>
-    
-            <td style="width: 80px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center">$precio</td>
-            <td style="width: 100px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center">$lblSubtotal</td>
-            <td style="width: 100px; background-color:#2c3e50; padding: 4px 4px 4px; font-weight:bold;  color:white; text-align:center">$lblTotal</td>
-    
+                <th style="width:100px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:center; border:1px solid #d6d6d6;">{$codigo}</th>
+                <th style="width:200px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:left; border:1px solid #d6d6d6;">{$descripcion}</th>
+                <th style="width:60px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:center; border:1px solid #d6d6d6;">{$cantidad}</th>
+                <th style="width:80px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:right; border:1px solid #d6d6d6;">{$precio}</th>
+                <th style="width:100px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:right; border:1px solid #d6d6d6;">{$lblSubtotal}</th>
+                <th style="width:100px; background-color:#2c3e50; padding:6px; font-weight:bold; color:#fff; text-align:right; border:1px solid #d6d6d6;">{$lblTotal}</th>
             </tr>
-    
-        </table>
-    
+        </thead>
+        <tbody>
     EOF;
 
-        $pdf->writeHTML($bloque3, false, false, false, false, '');
-
+        // Agregar filas dentro del mismo tbody
         $contador = 0;
         foreach ($listProducts as $key => $value) {
 
-
-
-            if ($contador % 2 == 0) {
-                $clase = 'style=" background-color:#ecf0f1; padding: 3px 4px 3px; ';
-            } else {
-                $clase = 'style="background-color:white; padding: 3px 4px 3px; ';
-            }
-
+            $rowBg = ($contador % 2 == 0) ? '#ffffff' : '#fbfbfb';
             $precio = number_format($value["price"], 2, ".");
             $subTotal = number_format($value["total"], 2, ".");
             $total = number_format($value["neto"], 2, ".");
-            $bloque4 = <<<EOF
-    
-        <table style="font-size:10px; padding:5px 10px;">
-    
+            $code = htmlspecialchars($value['codeProduct'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $desc = htmlspecialchars($value['description'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $cant = htmlspecialchars($value['cant'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+            $productosTable .= <<<EOF
             <tr>
-    
-                <td  $clase width:100px; text-align:center">
-                    $value[codeProduct]
-                </td>
-    
-    
-                <td  $clase width:200px; text-align:center">
-                    $value[description]
-                </td>
-    
-                <td $clase width:60px; text-align:center">
-                    $value[cant]
-                </td>
-    
-                <td $clase width:80px; text-align:right">
-                    $precio
-                </td>
-    
-                <td $clase width:100px; text-align:center">
-                $subTotal
-            </td>
-    
-                <td $clase width:100px; text-align:right">
-                $total
-                </td>
-    
-               
-    
-    
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:100px; text-align:center; vertical-align:top;">{$code}</td>
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:200px; text-align:left; vertical-align:top; line-height:1.12;">{$desc}</td>
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:60px; text-align:center; vertical-align:top;">{$cant}</td>
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:80px; text-align:right; vertical-align:top;">{$precio}</td>
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:100px; text-align:right; vertical-align:top;">{$subTotal}</td>
+                <td style="background-color:{$rowBg}; padding:6px; border:1px solid #eee; width:100px; text-align:right; vertical-align:top;">{$total}</td>
             </tr>
-    
-        </table>
-    
-    
-    EOF;
+        EOF;
+
             $contador++;
-            $pdf->writeHTML($bloque4, false, false, false, false, '');
         }
 
+        // Cierre de tabla
+        $productosTable .= '
+        </tbody>
+    </table>
+    ';
 
+        // Escribimos la tabla de productos (una sola vez)
+        $pdf->writeHTML($productosTable, false, false, false, false, '');
 
-
-        /**
-         * TOTALES
-         */
+        // --------------------------------------------------
+        // Totales (bordes finos, sin cajas gruesas)
+        // --------------------------------------------------
         $pdf->Setx(43);
-        $subTotal = number_format($dataSells["subTotal"], 2, ".");
-        $impuestos = number_format($dataSells["taxes"], 2, ".");
-        $total = number_format($dataSells["total"], 2, ".");
-        $IVARetenido = number_format($dataSells["IVARetenido"], 2, ".");
-        $ISRRetenido = number_format($dataSells["ISRRetenido"], 2, ".");
+        $subTotal = number_format($dataOrders["subTotal"], 2, ".");
+        $impuestos = number_format($dataOrders["taxes"], 2, ".");
+        $total = number_format($dataOrders["total"], 2, ".");
+        $IVARetenido = number_format($dataOrders["IVARetenido"], 2, ".");
+        $ISRRetenido = number_format($dataOrders["ISRRetenido"], 2, ".");
 
+        $bloqueIVARetenido = '';
         if ($IVARetenido > 0) {
-
             $bloqueIVARetenido = <<<EOF
-                    <tr>
-            
-                    <td style="border-right: 0px solid #666; color:#333; background-color:white; width:340px; text-align:right"></td>
-    
-                    <td style="border: 0px solid #666; background-color:white; width:100px; text-align:right">
-                   $lblIvaRetenido:
-                    </td>
-    
-                    <td style="border: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right">
-                        $IVARetenido
-                    </td>
-    
-                </tr>
-    
-            EOF;
-        } else {
-
-            $bloqueIVARetenido = "";
+            <tr>
+                <td style="width:340px; text-align:right; border:0;"></td>
+                <td style="width:100px; text-align:right; padding:6px 4px; border-top:1px solid #eee;">{$lblIvaRetenido}:</td>
+                <td style="width:100px; text-align:right; padding:6px 4px; border-top:1px solid #eee;">{$IVARetenido}</td>
+            </tr>
+        EOF;
         }
 
-
+        $bloqueISRRetenido = '';
         if ($ISRRetenido > 0) {
-
             $bloqueISRRetenido = <<<EOF
-                    <tr>
-            
-                    <td style="border-right: 0px solid #666; color:#333; background-color:white; width:340px; text-align:right"></td>
-    
-                    <td style="border: 0px solid #666; background-color:white; width:100px; text-align:right">
-                    $lblISRRetenido:
-                    </td>
-    
-                    <td style="border: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right">
-                        $ISRRetenido
-                    </td>
-    
-                </tr>
-    
-            EOF;
-        } else {
-
-            $bloqueISRRetenido = "";
+            <tr>
+                <td style="width:340px; text-align:right; border:0;"></td>
+                <td style="width:100px; text-align:right; padding:6px 4px; border-top:1px solid #eee;">{$lblISRRetenido}:</td>
+                <td style="width:100px; text-align:right; padding:6px 4px; border-top:1px solid #eee;">{$ISRRetenido}</td>
+            </tr>
+        EOF;
         }
-
-
-
-
 
         $bloque5 = <<<EOF
-
-      <table style="font-size:10px; padding:5px 10px;">
-  
+      <table style="font-size:9px; text-align:right; padding:6px 4px; border-top:0;">
           <tr>
-  
-              <td style="color:#333; background-color:white; width:340px; text-align:right"></td>
-  
-              <td style="border-bottom: 0px solid #666; background-color:white; width:100px; text-align:right"></td>
-  
-              <td style="border-bottom: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right"></td>
-  
+              <td colspan="3" text-align:right; padding:6px 4px; border-top:0;""></td>
           </tr>
-  
           <tr>
-  
-              <td style="border-right: 0px solid #666; color:#333; background-color:white; width:340px; text-align:right"></td>
-  
-              <td style="border: 0px solid #666;  background-color:white; width:100px; text-align:right">
-              $lblSubtotal:
-              </td>
-  
-              <td style="border: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right">
-                   $subTotal
-              </td>
-  
+              <td style="width:340px; text-align:right; padding:6px 4px; "></td>
+              <td style="width:100px; text-align:right; padding:6px 4px; ">{$lblSubtotal}:</td>
+              <td style="width:100px; text-align:right; ">{$subTotal}</td>
           </tr>
-  
           <tr>
-  
-              <td style="border-right: 0px solid #666; color:#333; background-color:white; width:340px; text-align:right"></td>
-  
-              <td style="border: 0px solid #666; background-color:white; width:100px; text-align:right">
-               IVA:
-              </td>
-  
-              <td style="border: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right">
-                   $impuestos
-              </td>
-  
+              <td style="width:340px; text-align:right;"></td>
+              <td style="width:100px; text-align:right; solid #eee; ">IVA:</td>
+              <td style="width:100px; text-align:right; ">{$impuestos}</td>
           </tr>
-  
-  
-          $bloqueIVARetenido
-          $bloqueISRRetenido
-  
-  
+          {$bloqueIVARetenido}
+          {$bloqueISRRetenido}
           <tr>
-  
-              <td style="border-right: 0px solid #666; color:#333; background-color:white; width:340px; text-align:right"></td>
-  
-              <td style="border: 0px solid #666; background-color:white; width:100px; text-align:right">
-                  $lblTotal:
-              </td>
-  
-              <td style="border: 0px solid #666; color:#333; background-color:white; width:100px; text-align:right">
-                  $ $total
-              </td>
-  
+              <td style="width:340px; text-align:right; "></td>
+              <td style="width:100px; text-align:right; padding:8px 4px; border-top:1px solid #ccc; font-weight:bold;">{$lblTotal}:</td>
+              <td style="width:100px; text-align:right; padding:8px 6px; border-top:1px solid #ccc; font-weight:bold;">$ {$total}</td>
           </tr>
-  
-  
       </table>
       <br>
-      <div style="font-size:11pt;text-align:center;font-weight:bold">$lblMsgThanks!</div>
-  <br><br>
-                  
-          <div style="font-size:8.5pt;text-align:left;font-weight:ligth">$lblUUIDocument: $dataSells[UUID]</div>
-          
-     
-      <div style="font-size:8.5pt;text-align:left;font-weight:ligth">$lblMsgSellNote</div>
-  
-      
-  
-  
-  EOF;
+      <div style="font-size:10pt; text-align:center; font-weight:bold;">{$lblMsgThanks}</div>
+      <br><br>
+      <div style="font-size:8.5pt; text-align:left;">{$lblUUIDocument}: {$dataOrders['UUID']}</div>
+      <div style="font-size:8.5pt; text-align:left;">{$lblMsgOrderNote}</div>
+    EOF;
 
+        // write totals (thin lines)
+        $pdf->SetLineWidth(0.1);
         $pdf->writeHTML($bloque5, false, false, false, false, 'R');
+
+        // ---------------------------
+        // Signatures: technician (left) and employee (right)
+        // - Name centered under its own line
+        // - Placed at the bottom of the page
+        // ---------------------------
+        // position near bottom of page (60 units from bottom)
+        $pdf->SetY(-60);
+
+        $technicianNameEsc = htmlspecialchars(trim($user['firstname'] . ' ' . $user['lastname']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $employeeNameEsc = ($nameEmploye !== "" && $nameEmploye !== null) ? htmlspecialchars($nameEmploye, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '';
+
+        $firmaHtml = <<<EOF
+    <table style="width:100%; font-size:9px; ">
+        <tr>
+            <td style="width:50%; text-align:left; vertical-align:bottom; padding-top:10px;">
+                <div style="width:80%; margin:0 auto; text-align:center;">
+                    <div style="border-top:1px solid #000; width:100%; height:1px;"></div>
+                    <div style="margin-top:6px; text-align:center;">{$technicianNameEsc}</div>
+                </div>
+            </td>
+            <td style="width:50%; text-align:right; vertical-align:bottom; padding-top:10px;">
+                <div style="width:80%; margin:0 auto; text-align:center;">
+                    <div style="border-top:1px solid #000; width:100%; height:1px;"></div>
+                    <div style="margin-top:6px; text-align:center;">{$employeeNameEsc}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    EOF;
+
+        $pdf->writeHTML($firmaHtml, false, false, false, false, '');
 
         if ($isMail == 0) {
             ob_end_clean();
             $this->response->setHeader("Content-Type", "application/pdf");
-            $pdf->Output('notaVenta.pdf', 'I');
+            $pdf->Output('ordenMantenimiento.pdf', 'I');
         } else {
-
             $attachment = $pdf->Output('notaVenta.pdf', 'S');
-
             return $attachment;
         }
 
-
-        //============================================================+
-        // END OF FILE
-        //============================================================+
+        // END
     }
 }
