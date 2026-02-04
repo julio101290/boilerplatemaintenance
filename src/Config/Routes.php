@@ -111,4 +111,14 @@ $routes->group('admin', function ($routes) {
             , 'SellsController::sellsReport/$1/$2/$3/$4/$5/$6'
             , ['namespace' => 'julio101290\boilerplatesells\Controllers']
     );
+
+    $routes->get('ordersMaintenance/dashboard'
+            , 'DashboardController::index'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+    
+    $routes->get('ordersMaintenance/graphs/(:any)/(:any)'
+            , 'DashboardController::traerInfo/$1/$2'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
 });

@@ -822,69 +822,11 @@ class OrderMaintenenceController extends BaseController {
 
             $empresa = $this->empresa->find($datos["idEmpresa"]);
 
-            if ($datos["tipoComprobanteRD"] != "")
-                $comprobante = $this->comprobantesRD->find($datos["tipoComprobanteRD"]);
-
-            if ($empresa["facturacionRD"] == "on") {
-
-
-                if ($datos["tipoComprobanteRD"] == "") {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "No se selecciono tipo comprobante";
-                    return;
-                }
-
-
-                if ($datos["folioComprobanteRD"] == "") {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "No hay folio Comprobante";
-                    return;
-                }
-
-
-                if ($datos["folioComprobanteRD"] > $comprobante["folioFinal"]) {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "Se agotaron los folio son hasta  $comprobante[folioFinal] y van en $datos[folioComprobanteRD]";
-                    return;
-                }
-
-                if ($datos["folioComprobanteRD"] < $comprobante["folioInicial"]) {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "Folio fuera de rango  $comprobante[folioInicial] y van en $datos[folioComprobanteRD]";
-                    return;
-                }
-
-
-                if ($datos["date"] < $comprobante["desdeFecha"]) {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "fecha fuera de rango limite inferior $comprobante[desdeFecha] fecha venta $datos[date]";
-                    return;
-                }
-
-
-                if ($datos["date"] > $comprobante["hastaFecha"]) {
-
-                    $this->orderMaintenance->db->transRollback();
-
-                    echo "fecha fuera de rango,  limite superior $comprobante[desdeFecha]  fecha venta $datos[date]";
-                    return;
-                }
-            }
 
 
             $datos["folio"] = $ultimoFolio;
 
-            $datos["balance"] = $datos["total"] - ($datos["importPayment"] - $datos["importBack"]);
+            $datos["balance"] = 0;
 
             try {
 
@@ -912,7 +854,7 @@ class OrderMaintenenceController extends BaseController {
 
                 foreach ($listProducts as $key => $value) {
 
-                    $datosDetalle["idOrder"] = $idOrderInserted;
+                    $datosDetalle["idOrderMaintenanceDetails"] = $idOrderInserted;
                     $datosDetalle["idProduct"] = $value["idProduct"];
                     $datosDetalle["description"] = $value["description"];
                     $datosDetalle["unidad"] = $value["unidad"];

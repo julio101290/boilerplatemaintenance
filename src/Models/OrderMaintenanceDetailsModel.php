@@ -12,7 +12,7 @@ class OrderMaintenanceDetailsModel extends Model {
     protected $returnType = 'array';
     protected $useSoftDeletes = true;
     protected $allowedFields = ['id'
-        , 'idOrderMaintenance'
+        , 'idOrderMaintenanceDetails'
         , 'idProduct'
         , 'description'
         , 'idAlmacen'
