@@ -116,9 +116,30 @@ $routes->group('admin', function ($routes) {
             , 'DashboardController::index'
             , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
-    
+
     $routes->get('ordersMaintenance/graphs/(:any)/(:any)'
             , 'DashboardController::traerInfo/$1/$2'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->get('orderMaintenance/getFilesPerOrder/(:any)'
+            , 'FilesOrderMaintenanceController::getFilesPerOrder/$1'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->post('filesOrderMaintenance/save'
+            , 'FilesOrderMaintenanceController::save'
+            , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
+    );
+
+    $routes->resource('ordenesMantenimientoArchivos', [
+        'controller' => 'FilesOrderMaintenanceController',
+        'except' => 'show',
+        'namespace' => 'julio101290\boilerplatemaintenance\Controllers',
+    ]);
+
+    $routes->get('ordenesMantenimientoArchivos/download/(:num)'
+            , 'FilesOrderMaintenanceController::download/$1'
             , ['namespace' => 'julio101290\boilerplatemaintenance\Controllers']
     );
 });

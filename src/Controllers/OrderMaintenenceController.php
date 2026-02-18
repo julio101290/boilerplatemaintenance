@@ -185,7 +185,7 @@ class OrderMaintenenceController extends BaseController {
                 'columns' => $this->request->getGet('columns'),
             ];
 
-            $datos = $this->sells->mdlGetSellsFilters(
+            $datos = $this->orderMaintenance->mdlGetOrderMaintenanceFilters(
                     $empresasID, $desdeFecha, $hastaFecha, $todas,
                     $empresa, $sucursal, $cliente,
                     $params

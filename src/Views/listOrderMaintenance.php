@@ -13,6 +13,7 @@
 <?= $this->section('content') ?>
 
 <?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/modaSendMail') ?>
+<?= $this->include('julio101290\boilerplatemaintenance\Views\modulesOrderMaintenance/modalFilesDatatable') ?>
 
 
 <!-- SELECT2 EXAMPLE -->
@@ -289,6 +290,7 @@
                              <button class="btn btn-success btnSendMail" data-toggle="modal" correoCliente ="${data.correoCliente}" uuid="${data.UUID}" folio="${data.folio}" data-toggle="modal" data-target="#modalSendMail"  >  <i class=" fas fa-envelope"></i></button>
                              <button class="btn bg-warning btnPrintOrder" uuid="${data.UUID}" ><i class="far fa-file-pdf"></i></button>
                              <button class="btn btn-danger btn-delete" data-id="${data.id}"><i class="fas fa-trash"></i></button> 
+                             <button class="btn btn-info btnUploadFiles" data-toggle="modal" idOrder="${data.id}" data-target="#modalUploadFiles">  <i class="fas fa-file-excel"></i></button>
                          </div>
                          </td>`
                 }
@@ -553,6 +555,19 @@
     })
 
 
+    /*=============================================
+     EDITAR Registrovisitas
+     =============================================*/
+    $(".tableOrdersMaintenence").on("click", ".btnUploadFiles", function () {
+
+        var idOrder = $(this).attr("idOrder");
+
+        tableFiles.ajax.url(`<?= base_url('admin/orderMaintenance/getFilesPerOrder') ?>/` + idOrder).load();
+        $("#idOrderMaintenance").val(idOrder);
+        $("#descriptionFile").val("");
+        $(".btnSaveLoadFile").attr("disabled", false);
+
+    });
 
 
 
@@ -576,17 +591,18 @@
             }
 
 
+            
+        var datePicker = $('#reportrange').data('daterangepicker');
+        var desdeFecha = datePicker.startDate.format('YYYY-MM-DD');
+        var hastaFecha = datePicker.endDate.format('YYYY-MM-DD');
+        var idEmpresa = $("#idEmpresa").val();
+        var idSucursal = $("#idSucursal").val();
+        var idCliente = $("#clientes").val();
 
-            var desdeFecha = start.format('YYYY-MM-DD');
-            var hastaFecha = end.format('YYYY-MM-DD');
-            var idEmpresa = $("#idEmpresa").val();
-            var idSucursal = $("#idSucursal").val();
-            var idCliente = $("#clientes").val();
 
-            tableQuotes.ajax.url(`<?= base_url('admin/sells') ?>/` + desdeFecha + '/' + hastaFecha + '/' + todas + '/' + idEmpresa + '/' + idSucursal + '/' + idCliente).load();
-
-
-        }
+        tableOrderMaintenence.ajax.url(`<?= base_url('admin/orderMaintenance') ?>/` + desdeFecha + '/' + hastaFecha + '/' + todas + '/' + idEmpresa + '/' + idSucursal + '/' + idCliente).load();
+       
+       }
 
         $('#reportrange').daterangepicker({
             startDate: start,
@@ -614,7 +630,7 @@
 <?php
 if (isset($cliente)) {
 
-    echo "tableQuotes.ajax.url('" . base_url('admin/sells') . "/$desdeFecha/$hastaFecha/$todas/$empresa/$sucursal/$cliente').load()";
+    //echo "tableQuotes.ajax.url('" . base_url('admin/sells') . "/$desdeFecha/$hastaFecha/$todas/$empresa/$sucursal/$cliente').load()";
 }
 ?>
     })

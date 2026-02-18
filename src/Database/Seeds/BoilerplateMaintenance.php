@@ -44,6 +44,7 @@ class BoilerplateMaintenance extends Seeder {
         
         $this->authorize->createPermission('orderMaintenance-permission', 'Permiso para la lista de ordenes de mantenimiento');
         
+        $this->authorize->createPermission('downloadFilesOrderMaintenance-permission', 'Permiso para la descarga de archivos de mantenimiento');
 
         // Assign Permission to user
         $this->authorize->addPermissionToUser('departaments-permission', 1);
@@ -53,6 +54,7 @@ class BoilerplateMaintenance extends Seeder {
         $this->authorize->addPermissionToUser('employes-permission', 1);
 
         $this->authorize->addPermissionToUser('orderMaintenance-permission', 1);
+        $this->authorize->addPermissionToUser('downloadFilesOrderMaintenance-permission', 1);
     }
 
     public function down() {

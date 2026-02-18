@@ -233,12 +233,12 @@ class OrderMaintenenceModel extends Model {
     ) {
         $dbDriver = $this->db->getPlatform();
 
-        $builder = $this->db->table('sells a')
+        $builder = $this->db->table('ordermaintenance a')
                 ->select("
             a.UUID,
             a.id,
             a.idProduct,
-            a.idEmpĺoye,
+            a.idEmploye,
             b.razonSocial,
             a.folio,
             a.date,
@@ -285,7 +285,7 @@ class OrderMaintenenceModel extends Model {
                 ->whereIn('a.idEmpresa', $empresas);
 
         if ($allSells !== 'true') {
-            $builder->where('a.balance >', 0);
+            //$builder->where('a.balance >', 0);
         }
 
         if ($empresa != '0') {
@@ -346,7 +346,7 @@ class OrderMaintenenceModel extends Model {
                 ->whereIn('a.idEmpresa', $empresas);
 
         if ($allSells !== 'true') {
-            $totalBuilder->where('a.balance >', 0);
+            //$totalBuilder->where('a.balance >', 0);
         }
 
         if ($empresa != '0') {
