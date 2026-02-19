@@ -58,6 +58,7 @@ class OrderMaintenenceModel extends Model {
         'anio',
         'tipoDocumentoRelacionado',
         'UUIDRelacion',
+        'status',
         'UUID'
     ];
     protected $useTimestamps = true;
@@ -174,6 +175,7 @@ class OrderMaintenenceModel extends Model {
             a.anio,
             a.tipoDocumentoRelacionado,
             a.UUIDRelacion,
+            a.status,
             a.created_at,
             a.updated_at,
             a.deleted_at
@@ -274,6 +276,7 @@ class OrderMaintenenceModel extends Model {
             a.anio,
             a.tipoDocumentoRelacionado,
             a.UUIDRelacion,
+            a.status,
             a.created_at,
             a.updated_at,
             a.deleted_at
@@ -419,6 +422,7 @@ class OrderMaintenenceModel extends Model {
             a.anio,
             a.tipoDocumentoRelacionado,
             a.UUIDRelacion,
+            a.status,
             a.created_at,
             a.updated_at,
             a.deleted_at
@@ -484,6 +488,7 @@ class OrderMaintenenceModel extends Model {
                         ,a.UUIDRelacion
                         
                         ,a.taxes
+                        ,a.status
                         ,a.subTotal
                         ,b.neto')
                 ->where('a.id', 'b.idSell', FALSE)

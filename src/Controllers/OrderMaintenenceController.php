@@ -470,6 +470,7 @@ class OrderMaintenenceController extends BaseController {
         $titulos["tiposVehiculo"] = $tiposVehiculo;
 
         $titulos["totalExento"] = "0";
+        $titulos["status"] = 1;
 
         return view('julio101290\boilerplatemaintenance\Views\newOrderMaintenance', $titulos);
     }
@@ -728,6 +729,7 @@ class OrderMaintenenceController extends BaseController {
         $titulos["idVehiculo"] = $order["idVehiculo"];
 
         $titulos["uuidRelacion"] = $order["UUIDRelacion"];
+        $titulos["status"] = $order["status"];
 
         $datosVehiculo = $this->vehiculos->select("*")->where("id", $order["idVehiculo"])->first();
 
@@ -821,8 +823,6 @@ class OrderMaintenenceController extends BaseController {
             $ultimoFolio = $this->getLastCodeInterno($datos["idEmpresa"], $datos["idSucursal"]);
 
             $empresa = $this->empresa->find($datos["idEmpresa"]);
-
-
 
             $datos["folio"] = $ultimoFolio;
 

@@ -655,7 +655,7 @@
 
 
 
-            $("#idSucursal").select2({
+            $(".idSucursal").select2({
                 ajax: {
                     url: "<?= site_url('admin/sucursales/getSucursalesAjax') ?>",
                     type: "post",
@@ -1274,6 +1274,7 @@
 
             var tipoDocumentoRelacionado = $("#tipoDocumentoRelacionado").val();
             var UUIDRelacion = $("#UUIDRelacion").val();
+            var status = $("#status").val();
 
 
 
@@ -1401,7 +1402,8 @@
             datos.append("tipoDocumentoRelacionado", tipoDocumentoRelacionado);
             datos.append("UUIDRelacion", UUIDRelacion);
             datos.append("idProduct", idProduct);
-
+            datos.append("status", status);
+            
             datos.append("UUID", UUID);
 
             $.ajax({
@@ -1772,6 +1774,9 @@ echo '$("#formaPagoVenta").trigger("change"); ';
 echo '$("#regimenFiscalReceptor").val("' . $regimenFiscalReceptor . '"); ';
 echo '$("#regimenFiscalReceptor").trigger("change"); ';
 
+echo '$("#status").val("' . $status . '"); ';
+echo '$("#status").trigger("change"); ';
+
 $listarProductos = "  listProducts(); ";
 
 echo $listarProductos;
@@ -1786,31 +1791,31 @@ echo $listarProductos;
 
 
 
-   $("#btnInfoExtraProduct").on("click",function(){
+        $(".btnInfoExtraProduct").on("click", function () {
 
-        
-        var idBalance = $("#productOrder").val();
+
+            var idBalance = $("#productOrder").val();
             console.log("idBalance:", idBalance);
             var datos = new FormData();
             datos.append("idBalance", idBalance);
             $.ajax({
 
-            url: "<?= base_url('admin/saldos/getProductsFieldsExtra') ?>",
-                    method: "POST",
-                    data: datos,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function (respuesta) {
+                url: "<?= base_url('admin/saldos/getProductsFieldsExtra') ?>",
+                method: "POST",
+                data: datos,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (respuesta) {
 
                     $(".extraFields").html(respuesta);
-                    }
+                }
 
             })
-        
-        $('#modalAddExtraFields').modal('show');
-       
-   })
+
+            $('#modalAddExtraFields').modal('show');
+
+        })
 
 
     </script>
