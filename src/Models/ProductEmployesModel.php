@@ -29,7 +29,7 @@ class ProductEmployesModel extends Model {
             CASE 
                 WHEN EXISTS (
                     SELECT 1
-                    FROM productsEmployes b
+                    FROM productsemployes b
                     WHERE b.idEmploye = a.id
                 ) THEN 'on'
                 ELSE 'off'

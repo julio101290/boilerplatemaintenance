@@ -880,7 +880,7 @@ class ProductsEmployeController extends BaseController {
             CASE 
                 WHEN EXISTS (
                     SELECT 1 
-                    FROM productsEmployes b
+                    FROM productsemployes b
                     WHERE b.idEmploye = a.id
                     AND b.idProduct = {$db->escapeString($idProduct)}
                 ) THEN 'on'
@@ -954,7 +954,7 @@ class ProductsEmployeController extends BaseController {
         $idUser = user()->id;
 
         $db = Database::connect();
-        $builder = $db->table('productsEmployes');
+        $builder = $db->table('productsemployes');
 
         if ($status === 'on') {
             // Asignar producto

@@ -17,10 +17,10 @@ class ProductsEmployes extends Migration {
             'deleted_at' => ['type' => 'datetime', 'null' => true],
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->createTable('productsEmployes', true);
+        $this->forge->createTable('productsemployes', true);
     }
 
     public function down() {
-        $this->forge->dropTable('productsEmployes', true);
+        $this->forge->dropTable('productsemployes', true);
     }
 }
